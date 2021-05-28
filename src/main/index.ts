@@ -1,1 +1,1 @@
-export * from './parsePathPattern';
+export * from './tokenizeRoutePattern';

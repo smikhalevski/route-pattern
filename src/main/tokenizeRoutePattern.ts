@@ -1,32 +1,34 @@
 import {allCharBy, char, CharCodeChecker, seq, substr, Taker} from './parser-dsl';
+import {decodeLiteral} from './decodeLiteral';
+import {CharCode} from './CharCode';
 
 const isSpaceChar: CharCodeChecker = (c) => c === 0x20 || c === 0x09 || c === 0xD || c === 0xA;
 
 const isVariableNameChar: CharCodeChecker = (c) => (
-    c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0) // a-z
-    || c >= 'A'.charCodeAt(0) && c <= 'Z'.charCodeAt(0) // A-Z
-    || c === '$'.charCodeAt(0)
-    || c === '_'.charCodeAt(0)
+    c >= CharCode['a'] && c <= CharCode['z']
+    || c >= CharCode['A'] && c <= CharCode['Z']
+    || c === CharCode['$']
+    || c === CharCode['_']
 );
 
 const takeSpace = allCharBy(isSpaceChar);
 
-const takeVariable = seq(char(':'.charCodeAt(0)), allCharBy(isVariableNameChar));
+const takeVariable = seq(char(CharCode[':']), allCharBy(isVariableNameChar));
 
-const takeAltStart = char('{'.charCodeAt(0));
+const takeAltStart = char(CharCode['{']);
 
-const takeAltEnd = char('}'.charCodeAt(0));
+const takeAltEnd = char(CharCode['}']);
 
-const takeAltSeparator = char(','.charCodeAt(0));
+const takeAltSeparator = char(CharCode[',']);
 
 const takeGreedyWildcard = substr('**');
 
-const takeWildcard = char('*'.charCodeAt(0));
+const takeWildcard = char(CharCode['*']);
 
-const takePathSeparator = char('/'.charCodeAt(0));
+const takePathSeparator = char(CharCode['/']);
 
 const takeLiteral: Taker = (str, i) => {
-  if (str.charCodeAt(i) !== '"'.charCodeAt(0)) {
+  if (str.charCodeAt(i) !== CharCode['"']) {
     return -1;
   }
   i++;
@@ -35,9 +37,11 @@ const takeLiteral: Taker = (str, i) => {
 
   while (i < charCount) {
     switch (str.charCodeAt(i)) {
-      case '"'.charCodeAt(0):
+
+      case CharCode['"']:
         return i + 1;
-      case '\\'.charCodeAt(0):
+
+      case CharCode['\\']:
         i++;
         break;
     }
@@ -47,7 +51,7 @@ const takeLiteral: Taker = (str, i) => {
 };
 
 const takeRegExp: Taker = (str, i) => {
-  if (str.charCodeAt(i) !== '('.charCodeAt(0)) {
+  if (str.charCodeAt(i) !== CharCode['(']) {
     return -1;
   }
   i++;
@@ -58,16 +62,19 @@ const takeRegExp: Taker = (str, i) => {
 
   while (i < charCount) {
     switch (str.charCodeAt(i)) {
-      case '('.charCodeAt(0):
+
+      case CharCode['(']:
         groupCount++;
         break;
-      case ')'.charCodeAt(0):
+
+      case CharCode[')']:
         if (groupCount === 0) {
           return i + 1;
         }
         groupCount--;
         break;
-      case '\\'.charCodeAt(0):
+
+      case CharCode['\\']:
         i++;
         break;
     }
@@ -80,29 +87,27 @@ export type DataCallback = (data: string, start: number, end: number) => void;
 
 export type OffsetCallback = (start: number, end: number) => void;
 
-export interface PathPatternParserOptions {
-  variable?: DataCallback;
-  altStart?: OffsetCallback;
-  altEnd?: OffsetCallback;
-  altSeparator?: OffsetCallback;
-  greedyWildcard?: OffsetCallback;
-  wildcard?: OffsetCallback;
-  regExp?: DataCallback;
-  literal?: DataCallback;
-  pathSeparator?: OffsetCallback;
+export interface RoutePatternTokenizerOptions {
+  onVariable?: DataCallback;
+  onAltStart?: OffsetCallback;
+  onAltEnd?: OffsetCallback;
+  onAltSeparator?: OffsetCallback;
+  onWildcard?: (greedy: boolean, start: number, end: number) => void;
+  onRegExp?: DataCallback;
+  onLiteral?: DataCallback;
+  onPathSeparator?: OffsetCallback;
 }
 
-export function parsePathPattern(str: string, options: PathPatternParserOptions): number {
+export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizerOptions): number {
   const {
-    variable,
-    altStart,
-    altEnd,
-    altSeparator,
-    greedyWildcard,
-    wildcard,
-    regExp,
-    literal,
-    pathSeparator,
+    onVariable,
+    onAltStart,
+    onAltEnd,
+    onAltSeparator,
+    onWildcard,
+    onRegExp,
+    onLiteral,
+    onPathSeparator,
   } = options;
 
   const charCount = str.length;
@@ -112,7 +117,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
 
   const emitText = () => {
     if (textStart !== -1) {
-      literal?.(str.substring(textStart, textEnd), textStart, textEnd);
+      onLiteral?.(str.substring(textStart, textEnd), textStart, textEnd);
       textStart = -1;
     }
   };
@@ -137,7 +142,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeVariable(str, i);
     if (j !== -1) {
       emitText();
-      variable?.(str.substring(i + 1, j), i, j);
+      onVariable?.(str.substring(i + 1, j), i, j);
       i = j;
       continue;
     }
@@ -145,7 +150,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeAltStart(str, i);
     if (j !== -1) {
       emitText();
-      altStart?.(i, j);
+      onAltStart?.(i, j);
       i = j;
       continue;
     }
@@ -153,7 +158,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeAltEnd(str, i);
     if (j !== -1) {
       emitText();
-      altEnd?.(i, j);
+      onAltEnd?.(i, j);
       i = j;
       continue;
     }
@@ -161,7 +166,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeAltSeparator(str, i);
     if (j !== -1) {
       emitText();
-      altSeparator?.(i, j);
+      onAltSeparator?.(i, j);
       i = j;
       continue;
     }
@@ -169,7 +174,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeGreedyWildcard(str, i);
     if (j !== -1) {
       emitText();
-      greedyWildcard?.(i, j);
+      onWildcard?.(true, i, j);
       i = j;
       continue;
     }
@@ -177,7 +182,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeWildcard(str, i);
     if (j !== -1) {
       emitText();
-      wildcard?.(i, j);
+      onWildcard?.(false, i, j);
       i = j;
       continue;
     }
@@ -185,7 +190,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takePathSeparator(str, i);
     if (j !== -1) {
       emitText();
-      pathSeparator?.(i, j);
+      onPathSeparator?.(i, j);
       i = j;
       continue;
     }
@@ -193,7 +198,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeLiteral(str, i);
     if (j !== -1) {
       emitText();
-      literal?.(str.substring(i + 1, j - 1), i, j);
+      onLiteral?.(decodeLiteral(str.substring(i + 1, j - 1)), i, j);
       i = j;
       continue;
     }
@@ -201,7 +206,7 @@ export function parsePathPattern(str: string, options: PathPatternParserOptions)
     j = takeRegExp(str, i);
     if (j !== -1) {
       emitText();
-      regExp?.(str.substring(i + 1, j - 1), i, j);
+      onRegExp?.(str.substring(i + 1, j - 1), i, j);
       i = j;
       continue;
     }

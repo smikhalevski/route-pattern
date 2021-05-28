@@ -82,7 +82,7 @@ describe('parseRoutePattern', () => {
 
   test('parses variable with literal constraint', () => {
     const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 12};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 4};
+    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 12};
     const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'barbaz', parent: b, start: 5, end: 12};
 
     b.constraint = c;
@@ -93,7 +93,7 @@ describe('parseRoutePattern', () => {
 
   test('parses variable with quoted literal constraint', () => {
     const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 9};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 4};
+    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 9};
     const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'bar', parent: b, start: 4, end: 9};
 
     b.constraint = c;
@@ -104,7 +104,7 @@ describe('parseRoutePattern', () => {
 
   test('parses variable with reg exp constraint', () => {
     const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 9};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 4};
+    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 9};
     const c: IRegExpNode = {nodeType: NodeType.REG_EXP, pattern: '\\d+', parent: b, start: 4, end: 9};
 
     b.constraint = c;
@@ -133,6 +133,19 @@ describe('parseRoutePattern', () => {
 
   test('throws if condition is overridden by literal', () => {
     expect(() => parseRoutePattern(':foo(\\d+)"bar"')).toThrow();
+  });
+
+  test('parses path with leading slash', () => {
+    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 2, end: 11};
+    const b: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'foo', parent: a, start: 2, end: 5};
+    const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'bar', parent: a, start: 8, end: 11};
+    a.children.push(b, c);
+
+    expect(parseRoutePattern('/ foo / bar ')).toEqual(a);
+  });
+
+  test('throws if sequential path separators', () => {
+    expect(() => parseRoutePattern('//')).toThrow();
   });
 
   test('parses alternation with literals', () => {

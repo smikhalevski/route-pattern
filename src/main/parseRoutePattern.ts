@@ -59,129 +59,111 @@ export function parseRoutePattern(str: string): IPathNode {
   let root: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 0};
 
   let parent: IPathNode | IAltNode | IVariableNode = root;
-  let last: Node = root;
+  let separated: boolean | undefined;
 
-  root.end = tokenizeRoutePattern(str, {
+  const pushNode = (node: Node): void => {
+    if (parent.nodeType === NodeType.VARIABLE) {
+      if (parent.constraint) {
+        throw new Error(`Variable constraint is redefined at ${node.start}`);
+      }
+      if (node.nodeType === NodeType.VARIABLE || node.nodeType === NodeType.PATH) {
+        throw new Error(`Variables are nested at ${node.start}`);
+      }
+      parent.constraint = node;
+    } else {
+      if (parent.children.length !== 0 && separated === false) {
+        throw new Error(`Expected path separator at ${node.start}`);
+      }
+      if (parent.nodeType === NodeType.PATH && parent.children.length === 0) {
+        parent.start = node.start;
+      }
+      parent.children.push(node);
+      separated = false;
+    }
+    shiftEnd(node.end);
+  };
+
+  const shiftEnd = (end: number) => {
+    for (let p: typeof parent | null = parent; p != null; p = p.parent) {
+      p.end = end;
+    }
+  };
+
+  tokenizeRoutePattern(str, {
 
     onVariable(data, start, end) {
-      if (parent.nodeType === NodeType.VARIABLE) {
-        throw new SyntaxError(`Unexpected variable at ${start}`);
-      }
       const node: IVariableNode = {nodeType: NodeType.VARIABLE, name: data, constraint: null, parent, start, end};
-      parent.children.push(node);
+      pushNode(node);
       parent = node;
-      last = node;
     },
 
     onAltStart(start, end) {
-      if (parent.nodeType === NodeType.VARIABLE && parent.constraint != null) {
-        throw new SyntaxError('Variable condition cannot be overridden');
-      }
-      if (parent.nodeType !== NodeType.VARIABLE && !(parent.nodeType === NodeType.PATH && parent.children.length === 0)) {
-        throw new SyntaxError('Unexpected alternation');
-      }
-
       const altNode: IAltNode = {nodeType: NodeType.ALT, children: [], parent, start, end};
-      const pathNode: IPathNode = {nodeType: NodeType.PATH, children: [], parent: altNode, start, end};
+      const pathNode: IPathNode = {nodeType: NodeType.PATH, children: [], parent: altNode, start: start + 1, end: start + 1};
 
       altNode.children.push(pathNode);
-
-      if (parent.nodeType === NodeType.VARIABLE) {
-        parent.constraint = altNode;
-      } else {
-        parent.children.push(altNode);
-      }
+      pushNode(altNode);
       parent = pathNode;
-      last = pathNode;
+      separated = true;
     },
 
     onAltEnd(start, end) {
       while (parent.nodeType !== NodeType.ALT) {
         if (!parent.parent) {
-          throw new SyntaxError('Unexpected alt end');
+          throw new SyntaxError(`Unexpected alternation end at ${start}`);
         }
         parent = parent.parent;
       }
-      parent.end = end;
-      last = parent;
+      shiftEnd(end);
     },
 
     onAltSeparator(start, end) {
       while (parent.nodeType !== NodeType.ALT) {
         if (!parent.parent) {
-          throw new SyntaxError('Unexpected alt separator');
+          throw new SyntaxError(`Unexpected alternation separator at ${start}`);
         }
         parent = parent.parent;
       }
-
-      const node: IPathNode = {nodeType: NodeType.PATH, children: [], parent, start, end};
-      parent.children.push(node);
+      separated = true;
+      const node: IPathNode = {nodeType: NodeType.PATH, children: [], parent, start: start + 1, end: start + 1};
+      pushNode(node);
       parent = node;
-      last = node;
+      separated = true;
     },
 
     onWildcard(greedy, start, end) {
-      if (parent.nodeType === NodeType.VARIABLE && parent.constraint != null) {
-        throw new SyntaxError('Variable condition cannot be overridden');
-      }
-      if (parent.nodeType !== NodeType.VARIABLE && !(parent.nodeType === NodeType.PATH && parent.children.length === 0)) {
-        throw new SyntaxError('Unexpected wildcard');
-      }
-      const node: IWildcardNode = {nodeType: NodeType.WILDCARD, greedy, parent, start, end};
-      last = node;
-
-      if (parent.nodeType === NodeType.VARIABLE) {
-        parent.constraint = node;
-      } else {
-        parent.children.push(node);
-      }
+      pushNode({nodeType: NodeType.WILDCARD, greedy, parent, start, end});
     },
 
     onRegExp(pattern, start, end) {
-      if (last?.nodeType === NodeType.REG_EXP) {
-        throw new SyntaxError('Unexpected regular expression');
-      }
-      if (parent.nodeType === NodeType.VARIABLE && parent.constraint != null) {
-        throw new SyntaxError('Variable condition cannot be overridden');
-      }
-      const node: IRegExpNode = {nodeType: NodeType.REG_EXP, pattern, parent, start, end};
-      last = node;
-
-      if (parent.nodeType === NodeType.VARIABLE) {
-        parent.constraint = node;
-      } else {
-        parent.children.push(node);
-      }
+      pushNode({nodeType: NodeType.REG_EXP, pattern, parent, start, end});
     },
 
     onLiteral(data, start, end) {
-      if (last?.nodeType === NodeType.LITERAL) {
-        last.value += data;
-        last.end = end;
-        return;
-      }
-      if (parent.nodeType === NodeType.VARIABLE && parent.constraint != null) {
-        throw new SyntaxError('Variable condition cannot be overridden');
-      }
+      if (!separated) {
+        const lastNode =
+            parent.nodeType === NodeType.VARIABLE ? parent.constraint :
+            parent.nodeType === NodeType.PATH ? parent.children[parent.children.length - 1] :
+            null;
 
-      const node: ILiteralNode = {nodeType: NodeType.LITERAL, value: data, parent, start, end};
-      last = node;
-
-      if (parent.nodeType === NodeType.VARIABLE) {
-        parent.constraint = node;
-      } else {
-        parent.children.push(node);
+        if (lastNode?.nodeType === NodeType.LITERAL) {
+          lastNode.value += data;
+          lastNode.end = end;
+          shiftEnd(end);
+          return;
+        }
       }
+      pushNode({nodeType: NodeType.LITERAL, value: data, parent, start, end});
     },
 
-    onPathSeparator(start, end) {
-      while (parent.nodeType !== NodeType.PATH) {
-        if (!parent.parent) {
-          throw new Error('Illegal state');
-        }
-        parent = parent.parent;
+    onPathSeparator(start) {
+      if (separated) {
+        throw new SyntaxError(`Unexpected path separator at ${start}`);
       }
-      last = parent;
+      while (parent.nodeType !== NodeType.PATH) {
+        parent = parent.parent!;
+      }
+      separated = true;
     },
   });
 

@@ -96,31 +96,31 @@ describe('tokenizeRoutePattern', () => {
     expect(tokenizeRoutePattern('()', options)).toBe(2);
 
     expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('', 0, 2);
+    expect(onRegExpMock).toHaveBeenCalledWith('', 0, 0, 2);
   });
 
   test('parses reg exp with groups', () => {
     expect(tokenizeRoutePattern('((a)((b)c))', options)).toBe(11);
 
     expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('(a)((b)c)', 0, 11);
+    expect(onRegExpMock).toHaveBeenCalledWith('(a)((b)c)', 3, 0, 11);
   });
 
   test('parses reg exp with escaped open brackets', () => {
     expect(tokenizeRoutePattern('(\\()', options)).toBe(4);
 
     expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('\\(', 0, 4);
+    expect(onRegExpMock).toHaveBeenCalledWith('\\(', 0, 0, 4);
   });
 
   test('parses reg exp with escaped close brackets', () => {
     expect(tokenizeRoutePattern('(\\))', options)).toBe(4);
 
     expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('\\)', 0, 4);
+    expect(onRegExpMock).toHaveBeenCalledWith('\\)', 0, 0, 4);
   });
 
-  test('stops parsing if reg exp is not cloed', () => {
+  test('stops parsing if reg exp is not closed', () => {
     expect(tokenizeRoutePattern('(foo', options)).toBe(0);
 
     expect(onRegExpMock).not.toHaveBeenCalled();
@@ -193,7 +193,7 @@ describe('tokenizeRoutePattern', () => {
     expect(onVariableMock).toHaveBeenNthCalledWith(2, 'baz', 20, 24);
 
     expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('\\d+', 12, 17);
+    expect(onRegExpMock).toHaveBeenCalledWith('\\d+', 0, 12, 17);
 
     expect(onAltStartMock).toHaveBeenCalledTimes(1);
     expect(onAltStartMock).toHaveBeenCalledWith(5, 6);

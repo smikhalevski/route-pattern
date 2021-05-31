@@ -50,7 +50,14 @@ const takeLiteral: Taker = (str, i) => {
   return ReturnCode.ERROR;
 };
 
+/**
+ * The number of groups in the regexp that was read during the last invocation of {@link takeRegExp}.
+ */
+let groupCount = 0;
+
 const takeRegExp: Taker = (str, i) => {
+  groupCount = 0;
+
   if (str.charCodeAt(i) !== CharCode['(']) {
     return ReturnCode.NO_MATCH;
   }
@@ -58,20 +65,21 @@ const takeRegExp: Taker = (str, i) => {
 
   const charCount = str.length;
 
-  let groupCount = 0;
+  let groupDepth = 0;
 
   while (i < charCount) {
     switch (str.charCodeAt(i)) {
 
       case CharCode['(']:
         groupCount++;
+        groupDepth++;
         break;
 
       case CharCode[')']:
-        if (groupCount === 0) {
+        if (groupDepth === 0) {
           return i + 1;
         }
-        groupCount--;
+        groupDepth--;
         break;
 
       case CharCode['\\']:
@@ -80,6 +88,8 @@ const takeRegExp: Taker = (str, i) => {
     }
     i++;
   }
+
+  groupCount = 0;
   return ReturnCode.ERROR;
 };
 
@@ -93,7 +103,7 @@ export interface RoutePatternTokenizerOptions {
   onAltEnd?: OffsetCallback;
   onAltSeparator?: OffsetCallback;
   onWildcard?: (greedy: boolean, start: number, end: number) => void;
-  onRegExp?: DataCallback;
+  onRegExp?: (pattern: string, groupCount: number, start: number, end: number) => void;
   onLiteral?: DataCallback;
   onPathSeparator?: OffsetCallback;
 }
@@ -208,7 +218,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     j = takeRegExp(str, i);
     if (j >= 0) {
       emitText();
-      onRegExp?.(str.substring(i + 1, j - 1), i, j);
+      onRegExp?.(str.substring(i + 1, j - 1), groupCount, i, j);
       i = j;
       continue;
     } else if (j === ReturnCode.ERROR) {

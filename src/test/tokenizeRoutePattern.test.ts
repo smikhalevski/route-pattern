@@ -1,4 +1,4 @@
-import {tokenizeRoutePattern, RoutePatternTokenizerOptions} from '../main/tokenizeRoutePattern';
+import {RoutePatternTokenizerOptions, tokenizeRoutePattern} from '../main/tokenizeRoutePattern';
 
 describe('tokenizeRoutePattern', () => {
 
@@ -120,6 +120,12 @@ describe('tokenizeRoutePattern', () => {
     expect(onRegExpMock).toHaveBeenCalledWith('\\)', 0, 4);
   });
 
+  test('stops parsing if reg exp is not cloed', () => {
+    expect(tokenizeRoutePattern('(foo', options)).toBe(0);
+
+    expect(onRegExpMock).not.toHaveBeenCalled();
+  });
+
   test('parses literals', () => {
     expect(tokenizeRoutePattern('"foo"', options)).toBe(5);
 
@@ -154,6 +160,12 @@ describe('tokenizeRoutePattern', () => {
     expect(onLiteralMock).toHaveBeenCalledTimes(2);
     expect(onLiteralMock).toHaveBeenNthCalledWith(1, 'foo', 3, 6);
     expect(onLiteralMock).toHaveBeenNthCalledWith(2, 'bar', 8, 11);
+  });
+
+  test('stops parsing if literal is not closed', () => {
+    expect(tokenizeRoutePattern('"foo', options)).toBe(0);
+
+    expect(onLiteralMock).not.toHaveBeenCalled();
   });
 
   test('parses path separators', () => {
@@ -194,5 +206,21 @@ describe('tokenizeRoutePattern', () => {
 
     expect(onWildcardMock).toHaveBeenCalledTimes(1);
     expect(onWildcardMock).toHaveBeenCalledWith(true, 33, 35);
+  });
+
+  test('stops stops parsing complex expressions', () => {
+    expect(tokenizeRoutePattern('/aaa/{ :foo (\\d+', options)).toBe(12);
+
+    expect(onPathSeparatorMock).toHaveBeenCalledTimes(2);
+    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(1, 0, 1);
+    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(2, 4, 5);
+
+    expect(onAltStartMock).toHaveBeenCalledTimes(1);
+    expect(onAltStartMock).toHaveBeenCalledWith(5, 6);
+
+    expect(onVariableMock).toHaveBeenCalledTimes(1);
+    expect(onVariableMock).toHaveBeenNthCalledWith(1, 'foo', 7, 11);
+
+    expect(onRegExpMock).not.toHaveBeenCalled();
   });
 });

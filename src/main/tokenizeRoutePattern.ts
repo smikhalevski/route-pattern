@@ -1,4 +1,4 @@
-import {allCharBy, char, CharCodeChecker, seq, substr, Taker} from './parser-dsl';
+import {allCharBy, char, CharCodeChecker, ReturnCode, seq, substr, Taker} from './parser-dsl';
 import {decodeLiteral} from './decodeLiteral';
 import {CharCode} from './CharCode';
 
@@ -29,7 +29,7 @@ const takePathSeparator = char(CharCode['/']);
 
 const takeLiteral: Taker = (str, i) => {
   if (str.charCodeAt(i) !== CharCode['"']) {
-    return -1;
+    return ReturnCode.NO_MATCH;
   }
   i++;
 
@@ -47,12 +47,12 @@ const takeLiteral: Taker = (str, i) => {
     }
     i++;
   }
-  return -1;
+  return ReturnCode.ERROR;
 };
 
 const takeRegExp: Taker = (str, i) => {
   if (str.charCodeAt(i) !== CharCode['(']) {
-    return -1;
+    return ReturnCode.NO_MATCH;
   }
   i++;
 
@@ -80,7 +80,7 @@ const takeRegExp: Taker = (str, i) => {
     }
     i++;
   }
-  return -1;
+  return ReturnCode.ERROR;
 };
 
 export type DataCallback = (data: string, start: number, end: number) => void;
@@ -140,7 +140,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takeVariable(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onVariable?.(str.substring(i + 1, j), i, j);
       i = j;
@@ -148,7 +148,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takeAltStart(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onAltStart?.(i, j);
       i = j;
@@ -156,7 +156,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takeAltEnd(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onAltEnd?.(i, j);
       i = j;
@@ -164,7 +164,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takeAltSeparator(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onAltSeparator?.(i, j);
       i = j;
@@ -172,7 +172,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takeGreedyWildcard(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onWildcard?.(true, i, j);
       i = j;
@@ -180,7 +180,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takeWildcard(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onWildcard?.(false, i, j);
       i = j;
@@ -188,7 +188,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takePathSeparator(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onPathSeparator?.(i, j);
       i = j;
@@ -196,19 +196,23 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     }
 
     j = takeLiteral(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onLiteral?.(decodeLiteral(str.substring(i + 1, j - 1)), i, j);
       i = j;
       continue;
+    } else if (j === ReturnCode.ERROR) {
+      return i;
     }
 
     j = takeRegExp(str, i);
-    if (j !== -1) {
+    if (j >= 0) {
       emitText();
       onRegExp?.(str.substring(i + 1, j - 1), i, j);
       i = j;
       continue;
+    } else if (j === ReturnCode.ERROR) {
+      return i;
     }
 
     // The start of the unquoted literal.

@@ -1,166 +1,548 @@
-import {
-  IAltNode,
-  ILiteralNode,
-  IPathNode,
-  IRegExpNode,
-  IVariableNode,
-  IWildcardNode,
-  NodeType,
-  parseRoutePattern,
-} from '../main/parseRoutePattern';
+import {parseRoutePattern} from '../main/parseRoutePattern';
+import {AstNode, AstNodeType} from '../main/ast-types';
 
 describe('parseRoutePattern', () => {
 
-  test('parses wildcard', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 1};
-    const b: IWildcardNode = {nodeType: NodeType.WILDCARD, greedy: false, parent: a, start: 0, end: 1};
-    a.children.push(b);
+  test('parses blank pattern', () => {
+    expect(parseRoutePattern(' ')).toEqual(<AstNode>{
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 0,
+    });
+  });
 
-    expect(parseRoutePattern('*')).toEqual(a);
+  test('parses absolute path', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: true,
+      children: [],
+      parent: null,
+      start: 1,
+      end: 2,
+    };
+
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 1,
+      end: 2,
+    };
+    rootNode.children.push(segNode);
+
+    expect(parseRoutePattern(' / ')).toEqual(rootNode);
+  });
+
+  test('parses sequential path separators', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: true,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 2,
+    };
+
+    const segNode1: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 1,
+    };
+    rootNode.children.push(segNode1);
+
+    const segNode2: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 1,
+      end: 2,
+    };
+    rootNode.children.push(segNode2);
+
+    expect(parseRoutePattern('//')).toEqual(rootNode);
+  });
+
+  test('parses wildcard', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 1,
+    };
+
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 1,
+    };
+    rootNode.children.push(segNode);
+
+    const wildcardNode: AstNode = {
+      nodeType: AstNodeType.WILDCARD,
+      greedy: false,
+      parent: segNode,
+      start: 0,
+      end: 1,
+    };
+    segNode.children.push(wildcardNode);
+
+    expect(parseRoutePattern('*')).toEqual(rootNode);
   });
 
   test('parses greedy wildcard', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 2};
-    const b: IWildcardNode = {nodeType: NodeType.WILDCARD, greedy: true, parent: a, start: 0, end: 2};
-    a.children.push(b);
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 2,
+    };
 
-    expect(parseRoutePattern('**')).toEqual(a);
-  });
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 2,
+    };
+    rootNode.children.push(segNode);
 
-  test('throws if sequential wildcards', () => {
-    expect(() => parseRoutePattern('* *')).toThrow();
-    expect(() => parseRoutePattern('* **')).toThrow();
-    expect(() => parseRoutePattern('** *')).toThrow();
-    expect(() => parseRoutePattern('** **')).toThrow();
+    const wildcardNode: AstNode = {
+      nodeType: AstNodeType.WILDCARD,
+      greedy: true,
+      parent: segNode,
+      start: 0,
+      end: 2,
+    };
+    segNode.children.push(wildcardNode);
+
+    expect(parseRoutePattern('**')).toEqual(rootNode);
   });
 
   test('parses literals', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 7};
-    const b: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'foo', parent: a, start: 0, end: 3};
-    const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'bar', parent: a, start: 4, end: 7};
-    a.children.push(b, c);
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 7,
+    };
 
-    expect(parseRoutePattern('foo/bar')).toEqual(a);
+    const segNode1: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 3,
+    };
+    rootNode.children.push(segNode1);
+
+    const literalNode1: AstNode = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'foo',
+      parent: segNode1,
+      start: 0,
+      end: 3,
+    };
+    segNode1.children.push(literalNode1);
+
+    const segNode2: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 3,
+      end: 7,
+    };
+    rootNode.children.push(segNode2);
+
+    const literalNode2: AstNode = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'bar',
+      parent: segNode2,
+      start: 4,
+      end: 7,
+    };
+    segNode2.children.push(literalNode2);
+
+    expect(parseRoutePattern('foo/bar')).toEqual(rootNode);
   });
 
-  test('concatenates non-separated literals', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 7};
-    const b: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'foobar', parent: a, start: 0, end: 7};
-    a.children.push(b);
+  test('parses quoted literals', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 1,
+      end: 10,
+    };
 
-    expect(parseRoutePattern('foo bar')).toEqual(a);
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 1,
+      end: 10,
+    };
+    rootNode.children.push(segNode);
+
+    const literalNode: AstNode = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'foo bar',
+      parent: segNode,
+      start: 1,
+      end: 10,
+    };
+    segNode.children.push(literalNode);
+
+    expect(parseRoutePattern(' "foo bar" ')).toEqual(rootNode);
   });
 
-  test('parses separated literals', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 19};
-    const b: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'foobar', parent: a, start: 0, end: 7};
-    const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'baz qux', parent: a, start: 10, end: 19};
-    a.children.push(b, c);
+  test('parses regexp', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 5,
+    };
 
-    expect(parseRoutePattern('foo bar / "baz qux"')).toEqual(a);
-  });
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 5,
+    };
+    rootNode.children.push(segNode);
 
-  test('parses reg exp', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 5};
-    const b: IRegExpNode = {nodeType: NodeType.REG_EXP, pattern: '\\d+', parent: a, start: 0, end: 5};
-    a.children.push(b);
+    const regExpNode: AstNode = {
+      nodeType: AstNodeType.REG_EXP,
+      pattern: '\\d+',
+      groupCount: 0,
+      parent: segNode,
+      start: 0,
+      end: 5,
+    };
+    segNode.children.push(regExpNode);
 
-    expect(parseRoutePattern('(\\d+)')).toEqual(a);
-  });
-
-  test('throws if two sequential reg exps', () => {
-    expect(() => parseRoutePattern('(\\d+)(\\d+)')).toThrow();
+    expect(parseRoutePattern('(\\d+)')).toEqual(rootNode);
   });
 
   test('parses variable', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 4};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 4};
-    a.children.push(b);
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 4,
+    };
 
-    expect(parseRoutePattern(':foo')).toEqual(a);
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 4,
+    };
+    rootNode.children.push(segNode);
+
+    const varNode: AstNode = {
+      nodeType: AstNodeType.VARIABLE,
+      name: 'foo',
+      constraint: null,
+      parent: segNode,
+      start: 0,
+      end: 4,
+    };
+    segNode.children.push(varNode);
+
+    expect(parseRoutePattern(':foo')).toEqual(rootNode);
   });
 
   test('parses variable with literal constraint', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 12};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 12};
-    const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'barbaz', parent: b, start: 5, end: 12};
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 8,
+    };
 
-    b.constraint = c;
-    a.children.push(b);
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 8,
+    };
+    rootNode.children.push(segNode);
 
-    expect(parseRoutePattern(':foo bar baz')).toEqual(a);
+    const varNode: AstNode = {
+      nodeType: AstNodeType.VARIABLE,
+      name: 'foo',
+      constraint: null,
+      parent: segNode,
+      start: 0,
+      end: 8,
+    };
+    segNode.children.push(varNode);
+
+    varNode.constraint = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'bar',
+      parent: varNode,
+      start: 5,
+      end: 8,
+    };
+
+    expect(parseRoutePattern(':foo bar')).toEqual(rootNode);
   });
 
   test('parses variable with quoted literal constraint', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 9};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 9};
-    const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'bar', parent: b, start: 4, end: 9};
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 9,
+    };
 
-    b.constraint = c;
-    a.children.push(b);
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 9,
+    };
+    rootNode.children.push(segNode);
 
-    expect(parseRoutePattern(':foo"bar"')).toEqual(a);
+    const varNode: AstNode = {
+      nodeType: AstNodeType.VARIABLE,
+      name: 'foo',
+      constraint: null,
+      parent: segNode,
+      start: 0,
+      end: 9,
+    };
+    segNode.children.push(varNode);
+
+    varNode.constraint = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'bar',
+      parent: varNode,
+      start: 4,
+      end: 9,
+    };
+
+    expect(parseRoutePattern(':foo"bar"')).toEqual(rootNode);
   });
 
-  test('parses variable with reg exp constraint', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 9};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 9};
-    const c: IRegExpNode = {nodeType: NodeType.REG_EXP, pattern: '\\d+', parent: b, start: 4, end: 9};
+  test('does not overwrite variable constraint', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 13,
+    };
 
-    b.constraint = c;
-    a.children.push(b);
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 13,
+    };
+    rootNode.children.push(segNode);
 
-    expect(parseRoutePattern(':foo(\\d+)')).toEqual(a);
+    const varNode: AstNode = {
+      nodeType: AstNodeType.VARIABLE,
+      name: 'foo',
+      constraint: null,
+      parent: segNode,
+      start: 0,
+      end: 9,
+    };
+    segNode.children.push(varNode);
+
+    varNode.constraint = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'bar',
+      parent: varNode,
+      start: 4,
+      end: 9,
+    };
+
+    const literalNode: AstNode = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'qux',
+      parent: segNode,
+      start: 10,
+      end: 13,
+    };
+    segNode.children.push(literalNode);
+
+    expect(parseRoutePattern(':foo"bar" qux')).toEqual(rootNode);
   });
 
-  test('parses path-separated variables', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 9};
-    const b: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'foo', constraint: null, parent: a, start: 0, end: 4};
-    const c: IVariableNode = {nodeType: NodeType.VARIABLE, name: 'bar', constraint: null, parent: a, start: 5, end: 9};
-
-    a.children.push(b, c);
-
-    expect(parseRoutePattern(':foo/:bar')).toEqual(a);
-  });
-
-  test('throws if sequential variables', () => {
+  test('throws on sequential variables', () => {
     expect(() => parseRoutePattern(':foo :bar')).toThrow();
   });
 
-  test('throws if condition is overridden by reg exp', () => {
-    expect(() => parseRoutePattern(':foo"bar"(\\d+)')).toThrow();
+  test('parses empty alternation', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 2,
+    };
+
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 2,
+    };
+    rootNode.children.push(segNode);
+
+    const altNode: AstNode = {
+      nodeType: AstNodeType.ALT,
+      children: [],
+      parent: segNode,
+      start: 0,
+      end: 2,
+    };
+    segNode.children.push(altNode);
+
+    const pathNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: altNode,
+      start: 1,
+      end: 1,
+    };
+    altNode.children.push(pathNode);
+
+    expect(parseRoutePattern('{}')).toEqual(rootNode);
   });
 
-  test('throws if condition is overridden by literal', () => {
-    expect(() => parseRoutePattern(':foo(\\d+)"bar"')).toThrow();
+  test('parses alternation', () => {
+    const rootNode: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 10,
+    };
+
+    const segNode: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 10,
+    };
+    rootNode.children.push(segNode);
+
+    const altNode: AstNode = {
+      nodeType: AstNodeType.ALT,
+      children: [],
+      parent: segNode,
+      start: 0,
+      end: 10,
+    };
+    segNode.children.push(altNode);
+
+    const pathNode1: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: altNode,
+      start: 1,
+      end: 4,
+    };
+    altNode.children.push(pathNode1);
+
+    const segNode1: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: pathNode1,
+      start: 1,
+      end: 4,
+    };
+    pathNode1.children.push(segNode1);
+
+    const literalNode1: AstNode = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'foo',
+      parent: segNode1,
+      start: 1,
+      end: 4,
+    };
+    segNode1.children.push(literalNode1);
+
+    const pathNode2: AstNode = {
+      nodeType: AstNodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: altNode,
+      start: 6,
+      end: 9,
+    };
+    altNode.children.push(pathNode2);
+
+    const segNode2: AstNode = {
+      nodeType: AstNodeType.PATH_SEGMENT,
+      children: [],
+      parent: pathNode2,
+      start: 6,
+      end: 9,
+    };
+    pathNode2.children.push(segNode2);
+
+    const literalNode2: AstNode = {
+      nodeType: AstNodeType.LITERAL,
+      value: 'bar',
+      parent: segNode2,
+      start: 6,
+      end: 9,
+    };
+    segNode2.children.push(literalNode2);
+
+    expect(parseRoutePattern('{foo, bar}')).toEqual(rootNode);
   });
 
-  test('parses path with leading slash', () => {
-    const a: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 2, end: 11};
-    const b: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'foo', parent: a, start: 2, end: 5};
-    const c: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'bar', parent: a, start: 8, end: 11};
-    a.children.push(b, c);
-
-    expect(parseRoutePattern('/ foo / bar ')).toEqual(a);
+  test('throws on unexpected alternation separator', () => {
+    expect(() => parseRoutePattern('foo, bar}')).toThrow();
   });
 
-  test('throws if sequential path separators', () => {
-    expect(() => parseRoutePattern('//')).toThrow();
+  test('throws on unexpected alternation end', () => {
+    expect(() => parseRoutePattern('foo}')).toThrow();
   });
 
-  test('parses alternation with literals', () => {
-    const root: IPathNode = {nodeType: NodeType.PATH, children: [], parent: null, start: 0, end: 10};
-    const alt: IAltNode = {nodeType: NodeType.ALT, children: [], parent: root, start: 0, end: 10};
-    const path1: IPathNode = {nodeType: NodeType.PATH, children: [], parent: alt, start: 1, end: 4};
-    const path2: IPathNode = {nodeType: NodeType.PATH, children: [], parent: alt, start: 6, end: 9};
-    const literal1: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'foo', parent: path1, start: 1, end: 4};
-    const literal2: ILiteralNode = {nodeType: NodeType.LITERAL, value: 'bar', parent: path2, start: 6, end: 9};
-
-    root.children.push(alt);
-    alt.children.push(path1, path2);
-    path1.children.push(literal1);
-    path2.children.push(literal2);
-
-    expect(parseRoutePattern('{foo, bar}')).toEqual(root);
+  test('throws on unterminated alternation', () => {
+    expect(() => parseRoutePattern('{foo')).toThrow();
   });
 });

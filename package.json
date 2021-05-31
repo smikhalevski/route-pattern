@@ -7,7 +7,7 @@
     "rollup": "rollup --input ./src/main/index.ts --dir ./lib --format cjs --plugin @rollup/plugin-typescript",
     "terser": "terser --compress --mangle toplevel --output ./lib/index.js -- ./lib/index.js",
     "clean": "rm -rf ./lib",
-    "test": "jest"
+    "test": "jest --detectOpenHandles"
   },
   "author": "Savva Mikhalevski <smikhalevski@gmail.com>",
   "license": "MIT",
@@ -16,17 +16,12 @@
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^4.1.2",
-    "@types/jest": "^25.2.3",
-    "htmlparser2": "^4.1.0",
-    "jest": "^26.0.1",
-    "nodemark": "^0.3.0",
-    "parse5": "^6.0.1",
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.2",
     "rollup": "^2.12.0",
-    "sax": "^1.2.4",
     "terser": "^4.7.0",
-    "ts-jest": "^26.1.0",
+    "ts-jest": "^27.0.2",
     "tslib": "^2.0.0",
-    "typedoc": "^0.17.0-3",
     "typescript": "^4.0.2"
   },
   "dependencies": {}

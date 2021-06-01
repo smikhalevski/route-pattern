@@ -1,10 +1,17 @@
-import {AstNode, AstNodeType, IPathAstNode} from './ast-types';
-import {tokenizeRoutePattern} from './tokenizeRoutePattern';
+import {IPathNode, Node, NodeType} from './ast-types';
+import {tokenizePattern} from './tokenizePattern';
 
-export function parseRoutePattern(str: string): IPathAstNode {
+/**
+ * Converts pattern to an AST.
+ *
+ * @param str The pattern to parse.
+ * @throws SyntaxError If unexpected syntax is met.
+ * @returns The root node of the parsed AST.
+ */
+export function parsePattern(str: string): IPathNode {
 
-  let root: AstNode = {
-    nodeType: AstNodeType.PATH,
+  let root: Node = {
+    nodeType: NodeType.PATH,
     absolute: false,
     children: [],
     parent: null,
@@ -12,21 +19,21 @@ export function parseRoutePattern(str: string): IPathAstNode {
     end: 0,
   };
 
-  let parent: AstNode = root;
+  let parent: Node = root;
   let altDepth = 0;
 
-  const pushNode = (node: AstNode): void => {
+  const pushNode = (node: Node): void => {
 
-    if (parent.nodeType === AstNodeType.VARIABLE) {
+    if (parent.nodeType === NodeType.VARIABLE) {
       parent.constraint = node;
       setEnd(node.end);
       parent = parent.parent!;
       return;
     }
 
-    if (parent.nodeType === AstNodeType.PATH) {
-      const segNode: AstNode = {
-        nodeType: AstNodeType.PATH_SEGMENT,
+    if (parent.nodeType === NodeType.PATH) {
+      const segNode: Node = {
+        nodeType: NodeType.PATH_SEGMENT,
         children: [node],
         parent,
         start: node.start,
@@ -44,7 +51,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
       return;
     }
 
-    if (parent.nodeType === AstNodeType.PATH_SEGMENT) {
+    if (parent.nodeType === NodeType.PATH_SEGMENT) {
       parent.children.push(node);
       setEnd(node.end);
       return;
@@ -54,16 +61,16 @@ export function parseRoutePattern(str: string): IPathAstNode {
   };
 
   const setEnd = (end: number): void => {
-    for (let node: AstNode | null = parent; node !== null; node = node.parent) {
+    for (let node: Node | null = parent; node !== null; node = node.parent) {
       node.end = end;
     }
   };
 
-  let length = tokenizeRoutePattern(str, {
+  let length = tokenizePattern(str, {
 
     onVariable(name, start, end) {
-      const node: AstNode = {
-        nodeType: AstNodeType.VARIABLE,
+      const node: Node = {
+        nodeType: NodeType.VARIABLE,
         name,
         constraint: null,
         parent,
@@ -71,7 +78,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
         end,
       };
 
-      if (parent.nodeType === AstNodeType.VARIABLE) {
+      if (parent.nodeType === NodeType.VARIABLE) {
         throw new SyntaxError(`Consequent variables at ${start}`);
       }
       pushNode(node);
@@ -81,16 +88,16 @@ export function parseRoutePattern(str: string): IPathAstNode {
     onAltStart(start, end) {
       altDepth++;
 
-      const altNode: AstNode = {
-        nodeType: AstNodeType.ALT,
+      const altNode: Node = {
+        nodeType: NodeType.ALT,
         children: [],
         parent,
         start,
         end,
       };
 
-      const pathNode: AstNode = {
-        nodeType: AstNodeType.PATH,
+      const pathNode: Node = {
+        nodeType: NodeType.PATH,
         absolute: false,
         children: [],
         parent: altNode,
@@ -106,7 +113,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
     onAltEnd(start, end) {
       altDepth--;
 
-      while (parent.nodeType !== AstNodeType.ALT) {
+      while (parent.nodeType !== NodeType.ALT) {
         if (!parent.parent) {
           throw new SyntaxError(`Unexpected alternation end at ${start}`);
         }
@@ -117,15 +124,15 @@ export function parseRoutePattern(str: string): IPathAstNode {
     },
 
     onAltSeparator(start, end) {
-      while (parent.nodeType !== AstNodeType.ALT) {
+      while (parent.nodeType !== NodeType.ALT) {
         if (!parent.parent) {
           throw new SyntaxError(`Unexpected alternation separator at ${start}`);
         }
         parent = parent.parent;
       }
 
-      const node: AstNode = {
-        nodeType: AstNodeType.PATH,
+      const node: Node = {
+        nodeType: NodeType.PATH,
         absolute: false,
         children: [],
         parent,
@@ -140,7 +147,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
 
     onWildcard(greedy, start, end) {
       pushNode({
-        nodeType: AstNodeType.WILDCARD,
+        nodeType: NodeType.WILDCARD,
         greedy,
         parent,
         start,
@@ -150,7 +157,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
 
     onRegExp(pattern, groupCount, start, end) {
       pushNode({
-        nodeType: AstNodeType.REG_EXP,
+        nodeType: NodeType.REG_EXP,
         pattern,
         groupCount,
         parent,
@@ -161,7 +168,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
 
     onText(value, start, end) {
       pushNode({
-        nodeType: AstNodeType.TEXT,
+        nodeType: NodeType.TEXT,
         value,
         parent,
         start,
@@ -170,7 +177,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
     },
 
     onPathSeparator(start, end) {
-      while (parent.nodeType !== AstNodeType.PATH) {
+      while (parent.nodeType !== NodeType.PATH) {
         parent = parent.parent!;
       }
 
@@ -179,8 +186,8 @@ export function parseRoutePattern(str: string): IPathAstNode {
         parent.start = start;
       }
 
-      const node: AstNode = {
-        nodeType: AstNodeType.PATH_SEGMENT,
+      const node: Node = {
+        nodeType: NodeType.PATH_SEGMENT,
         children: [],
         parent,
         start,

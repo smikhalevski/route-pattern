@@ -1,4 +1,4 @@
-export const enum AstNodeType {
+export const enum NodeType {
   PATH,
   PATH_SEGMENT,
   VARIABLE,
@@ -8,55 +8,55 @@ export const enum AstNodeType {
   TEXT,
 }
 
-export type AstNode =
-    | IPathAstNode
-    | IPathSegmentAstNode
-    | IAltAstNode
-    | IVariableAstNode
-    | IWildcardAstNode
-    | IRegExpAstNode
-    | ITextAstNode;
+export type Node =
+    | IPathNode
+    | IPathSegmentNode
+    | IAltNode
+    | IVariableNode
+    | IWildcardNode
+    | IRegExpNode
+    | ITextNode;
 
-export interface IAstNode {
-  parent: AstNode | null;
+export interface INode {
+  parent: Node | null;
   start: number;
   end: number;
 }
 
-export interface IPathAstNode extends IAstNode {
-  nodeType: AstNodeType.PATH;
-  children: Array<AstNode>;
+export interface IPathNode extends INode {
+  nodeType: NodeType.PATH;
+  children: Array<Node>;
   absolute: boolean;
 }
 
-export interface IPathSegmentAstNode extends IAstNode {
-  nodeType: AstNodeType.PATH_SEGMENT;
-  children: Array<AstNode>;
+export interface IPathSegmentNode extends INode {
+  nodeType: NodeType.PATH_SEGMENT;
+  children: Array<Node>;
 }
 
-export interface IAltAstNode extends IAstNode {
-  nodeType: AstNodeType.ALT;
-  children: Array<AstNode>;
+export interface IAltNode extends INode {
+  nodeType: NodeType.ALT;
+  children: Array<Node>;
 }
 
-export interface IVariableAstNode extends IAstNode {
-  nodeType: AstNodeType.VARIABLE;
+export interface IVariableNode extends INode {
+  nodeType: NodeType.VARIABLE;
   name: string;
-  constraint: AstNode | null;
+  constraint: Node | null;
 }
 
-export interface IWildcardAstNode extends IAstNode {
-  nodeType: AstNodeType.WILDCARD;
+export interface IWildcardNode extends INode {
+  nodeType: NodeType.WILDCARD;
   greedy: boolean;
 }
 
-export interface IRegExpAstNode extends IAstNode {
-  nodeType: AstNodeType.REG_EXP;
+export interface IRegExpNode extends INode {
+  nodeType: NodeType.REG_EXP;
   pattern: string;
   groupCount: number;
 }
 
-export interface ITextAstNode extends IAstNode {
-  nodeType: AstNodeType.TEXT;
+export interface ITextNode extends INode {
+  nodeType: NodeType.TEXT;
   value: string;
 }

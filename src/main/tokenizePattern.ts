@@ -1,4 +1,4 @@
-import {allCharBy, char, CharCodeChecker, ReturnCode, seq, substr, Taker} from './parser-dsl';
+import {allCharBy, char, CharCodeChecker, ResultCode, seq, Taker, text} from 'tokenizer-dsl';
 import {CharCode} from './CharCode';
 
 const isSpaceChar: CharCodeChecker = (c) =>
@@ -23,7 +23,7 @@ const takeAltEnd = char(CharCode['}']);
 
 const takeAltSeparator = char(CharCode[',']);
 
-const takeGreedyWildcard = substr('**');
+const takeGreedyWildcard = text('**');
 
 const takeWildcard = char(CharCode['*']);
 
@@ -34,7 +34,7 @@ let lastText = '';
 const takeText: Taker = (str, i) => {
   const quoteCode = str.charCodeAt(i);
   if (quoteCode !== CharCode['"'] && quoteCode !== CharCode['\'']) {
-    return ReturnCode.NO_MATCH;
+    return ResultCode.NO_MATCH;
   }
   i++;
 
@@ -58,14 +58,14 @@ const takeText: Taker = (str, i) => {
   }
 
   lastText = '';
-  return ReturnCode.ERROR;
+  return ResultCode.ERROR;
 };
 
 let lastGroupCount = 0;
 
 const takeRegExp: Taker = (str, i) => {
   if (str.charCodeAt(i) !== CharCode['(']) {
-    return ReturnCode.NO_MATCH;
+    return ResultCode.NO_MATCH;
   }
   i++;
 
@@ -97,14 +97,14 @@ const takeRegExp: Taker = (str, i) => {
   }
 
   lastGroupCount = 0;
-  return ReturnCode.ERROR;
+  return ResultCode.ERROR;
 };
 
 export type DataCallback = (data: string, start: number, end: number) => void;
 
 export type OffsetCallback = (start: number, end: number) => void;
 
-export interface RoutePatternTokenizerOptions {
+export interface IPatternTokenizerOptions {
   onVariable?: DataCallback;
   onAltStart?: OffsetCallback;
   onAltEnd?: OffsetCallback;
@@ -115,7 +115,14 @@ export interface RoutePatternTokenizerOptions {
   onPathSeparator?: OffsetCallback;
 }
 
-export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizerOptions): number {
+/**
+ * Traverses pattern and invokes callbacks when particular token in met.
+ *
+ * @param str The pattern to tokenize.
+ * @param options Callbacks to invoke during tokenization.
+ * @returns The number of chars that were successfully parsed in `str`.
+ */
+export function tokenizePattern(str: string, options: IPatternTokenizerOptions): number {
   const {
     onVariable,
     onAltStart,
@@ -218,7 +225,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
       onText?.(lastText, i, j);
       i = j;
       continue;
-    } else if (j === ReturnCode.ERROR) {
+    } else if (j === ResultCode.ERROR) {
       return i;
     }
 
@@ -228,7 +235,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
       onRegExp?.(str.substring(i + 1, j - 1), lastGroupCount, i, j);
       i = j;
       continue;
-    } else if (j === ReturnCode.ERROR) {
+    } else if (j === ResultCode.ERROR) {
       return i;
     }
 

@@ -1,11 +1,11 @@
-import {parseRoutePattern} from '../main/parseRoutePattern';
-import {AstNode, AstNodeType} from '../main/ast-types';
+import {parsePattern} from '../main/parsePattern';
+import {Node, NodeType} from '../main/ast-types';
 
 describe('parseRoutePattern', () => {
 
   test('parses blank pattern', () => {
-    expect(parseRoutePattern(' ')).toEqual(<AstNode>{
-      nodeType: AstNodeType.PATH,
+    expect(parsePattern(' ')).toEqual(<Node>{
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -15,8 +15,8 @@ describe('parseRoutePattern', () => {
   });
 
   test('parses absolute path', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: true,
       children: [],
       parent: null,
@@ -24,8 +24,8 @@ describe('parseRoutePattern', () => {
       end: 2,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 1,
@@ -33,12 +33,12 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    expect(parseRoutePattern(' / ')).toEqual(rootNode);
+    expect(parsePattern(' / ')).toEqual(rootNode);
   });
 
   test('parses sequential path separators', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: true,
       children: [],
       parent: null,
@@ -46,8 +46,8 @@ describe('parseRoutePattern', () => {
       end: 2,
     };
 
-    const segNode1: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode1: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -55,8 +55,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode1);
 
-    const segNode2: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode2: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 1,
@@ -64,12 +64,12 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode2);
 
-    expect(parseRoutePattern('//')).toEqual(rootNode);
+    expect(parsePattern('//')).toEqual(rootNode);
   });
 
   test('parses wildcard', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -77,8 +77,8 @@ describe('parseRoutePattern', () => {
       end: 1,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -86,8 +86,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const wildcardNode: AstNode = {
-      nodeType: AstNodeType.WILDCARD,
+    const wildcardNode: Node = {
+      nodeType: NodeType.WILDCARD,
       greedy: false,
       parent: segNode,
       start: 0,
@@ -95,12 +95,12 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(wildcardNode);
 
-    expect(parseRoutePattern('*')).toEqual(rootNode);
+    expect(parsePattern('*')).toEqual(rootNode);
   });
 
   test('parses greedy wildcard', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -108,8 +108,8 @@ describe('parseRoutePattern', () => {
       end: 2,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -117,8 +117,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const wildcardNode: AstNode = {
-      nodeType: AstNodeType.WILDCARD,
+    const wildcardNode: Node = {
+      nodeType: NodeType.WILDCARD,
       greedy: true,
       parent: segNode,
       start: 0,
@@ -126,12 +126,12 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(wildcardNode);
 
-    expect(parseRoutePattern('**')).toEqual(rootNode);
+    expect(parsePattern('**')).toEqual(rootNode);
   });
 
   test('parses text', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -139,8 +139,8 @@ describe('parseRoutePattern', () => {
       end: 7,
     };
 
-    const segNode1: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode1: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -148,8 +148,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode1);
 
-    const textNode1: AstNode = {
-      nodeType: AstNodeType.TEXT,
+    const textNode1: Node = {
+      nodeType: NodeType.TEXT,
       value: 'foo',
       parent: segNode1,
       start: 0,
@@ -157,8 +157,8 @@ describe('parseRoutePattern', () => {
     };
     segNode1.children.push(textNode1);
 
-    const segNode2: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode2: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 3,
@@ -166,8 +166,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode2);
 
-    const textNode2: AstNode = {
-      nodeType: AstNodeType.TEXT,
+    const textNode2: Node = {
+      nodeType: NodeType.TEXT,
       value: 'bar',
       parent: segNode2,
       start: 4,
@@ -175,12 +175,12 @@ describe('parseRoutePattern', () => {
     };
     segNode2.children.push(textNode2);
 
-    expect(parseRoutePattern('foo/bar')).toEqual(rootNode);
+    expect(parsePattern('foo/bar')).toEqual(rootNode);
   });
 
   test('parses quoted text', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -188,8 +188,8 @@ describe('parseRoutePattern', () => {
       end: 10,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 1,
@@ -197,8 +197,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const textNode: AstNode = {
-      nodeType: AstNodeType.TEXT,
+    const textNode: Node = {
+      nodeType: NodeType.TEXT,
       value: 'foo bar',
       parent: segNode,
       start: 1,
@@ -206,12 +206,12 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(textNode);
 
-    expect(parseRoutePattern(' "foo bar" ')).toEqual(rootNode);
+    expect(parsePattern(' "foo bar" ')).toEqual(rootNode);
   });
 
   test('parses regexp', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -219,8 +219,8 @@ describe('parseRoutePattern', () => {
       end: 5,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -228,8 +228,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const regExpNode: AstNode = {
-      nodeType: AstNodeType.REG_EXP,
+    const regExpNode: Node = {
+      nodeType: NodeType.REG_EXP,
       pattern: '\\d+',
       groupCount: 0,
       parent: segNode,
@@ -238,12 +238,12 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(regExpNode);
 
-    expect(parseRoutePattern('(\\d+)')).toEqual(rootNode);
+    expect(parsePattern('(\\d+)')).toEqual(rootNode);
   });
 
   test('parses variable', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -251,8 +251,8 @@ describe('parseRoutePattern', () => {
       end: 4,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -260,8 +260,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const varNode: AstNode = {
-      nodeType: AstNodeType.VARIABLE,
+    const varNode: Node = {
+      nodeType: NodeType.VARIABLE,
       name: 'foo',
       constraint: null,
       parent: segNode,
@@ -270,12 +270,12 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(varNode);
 
-    expect(parseRoutePattern(':foo')).toEqual(rootNode);
+    expect(parsePattern(':foo')).toEqual(rootNode);
   });
 
   test('parses variable with text constraint', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -283,8 +283,8 @@ describe('parseRoutePattern', () => {
       end: 8,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -292,8 +292,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const varNode: AstNode = {
-      nodeType: AstNodeType.VARIABLE,
+    const varNode: Node = {
+      nodeType: NodeType.VARIABLE,
       name: 'foo',
       constraint: null,
       parent: segNode,
@@ -303,19 +303,19 @@ describe('parseRoutePattern', () => {
     segNode.children.push(varNode);
 
     varNode.constraint = {
-      nodeType: AstNodeType.TEXT,
+      nodeType: NodeType.TEXT,
       value: 'bar',
       parent: varNode,
       start: 5,
       end: 8,
     };
 
-    expect(parseRoutePattern(':foo bar')).toEqual(rootNode);
+    expect(parsePattern(':foo bar')).toEqual(rootNode);
   });
 
   test('parses variable with quoted text constraint', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -323,8 +323,8 @@ describe('parseRoutePattern', () => {
       end: 9,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -332,8 +332,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const varNode: AstNode = {
-      nodeType: AstNodeType.VARIABLE,
+    const varNode: Node = {
+      nodeType: NodeType.VARIABLE,
       name: 'foo',
       constraint: null,
       parent: segNode,
@@ -343,19 +343,19 @@ describe('parseRoutePattern', () => {
     segNode.children.push(varNode);
 
     varNode.constraint = {
-      nodeType: AstNodeType.TEXT,
+      nodeType: NodeType.TEXT,
       value: 'bar',
       parent: varNode,
       start: 4,
       end: 9,
     };
 
-    expect(parseRoutePattern(':foo"bar"')).toEqual(rootNode);
+    expect(parsePattern(':foo"bar"')).toEqual(rootNode);
   });
 
   test('does not overwrite variable constraint', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -363,8 +363,8 @@ describe('parseRoutePattern', () => {
       end: 13,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -372,8 +372,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const varNode: AstNode = {
-      nodeType: AstNodeType.VARIABLE,
+    const varNode: Node = {
+      nodeType: NodeType.VARIABLE,
       name: 'foo',
       constraint: null,
       parent: segNode,
@@ -383,15 +383,15 @@ describe('parseRoutePattern', () => {
     segNode.children.push(varNode);
 
     varNode.constraint = {
-      nodeType: AstNodeType.TEXT,
+      nodeType: NodeType.TEXT,
       value: 'bar',
       parent: varNode,
       start: 4,
       end: 9,
     };
 
-    const textNode: AstNode = {
-      nodeType: AstNodeType.TEXT,
+    const textNode: Node = {
+      nodeType: NodeType.TEXT,
       value: 'qux',
       parent: segNode,
       start: 10,
@@ -399,16 +399,16 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(textNode);
 
-    expect(parseRoutePattern(':foo"bar" qux')).toEqual(rootNode);
+    expect(parsePattern(':foo"bar" qux')).toEqual(rootNode);
   });
 
   test('throws on sequential variables', () => {
-    expect(() => parseRoutePattern(':foo :bar')).toThrow();
+    expect(() => parsePattern(':foo :bar')).toThrow();
   });
 
   test('parses empty alternation', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -416,8 +416,8 @@ describe('parseRoutePattern', () => {
       end: 2,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -425,8 +425,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const altNode: AstNode = {
-      nodeType: AstNodeType.ALT,
+    const altNode: Node = {
+      nodeType: NodeType.ALT,
       children: [],
       parent: segNode,
       start: 0,
@@ -434,8 +434,8 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(altNode);
 
-    const pathNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const pathNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: altNode,
@@ -444,12 +444,12 @@ describe('parseRoutePattern', () => {
     };
     altNode.children.push(pathNode);
 
-    expect(parseRoutePattern('{}')).toEqual(rootNode);
+    expect(parsePattern('{}')).toEqual(rootNode);
   });
 
   test('parses alternation', () => {
-    const rootNode: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: null,
@@ -457,8 +457,8 @@ describe('parseRoutePattern', () => {
       end: 10,
     };
 
-    const segNode: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: rootNode,
       start: 0,
@@ -466,8 +466,8 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const altNode: AstNode = {
-      nodeType: AstNodeType.ALT,
+    const altNode: Node = {
+      nodeType: NodeType.ALT,
       children: [],
       parent: segNode,
       start: 0,
@@ -475,8 +475,8 @@ describe('parseRoutePattern', () => {
     };
     segNode.children.push(altNode);
 
-    const pathNode1: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const pathNode1: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: altNode,
@@ -485,8 +485,8 @@ describe('parseRoutePattern', () => {
     };
     altNode.children.push(pathNode1);
 
-    const segNode1: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode1: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: pathNode1,
       start: 1,
@@ -494,8 +494,8 @@ describe('parseRoutePattern', () => {
     };
     pathNode1.children.push(segNode1);
 
-    const textNode1: AstNode = {
-      nodeType: AstNodeType.TEXT,
+    const textNode1: Node = {
+      nodeType: NodeType.TEXT,
       value: 'foo',
       parent: segNode1,
       start: 1,
@@ -503,8 +503,8 @@ describe('parseRoutePattern', () => {
     };
     segNode1.children.push(textNode1);
 
-    const pathNode2: AstNode = {
-      nodeType: AstNodeType.PATH,
+    const pathNode2: Node = {
+      nodeType: NodeType.PATH,
       absolute: false,
       children: [],
       parent: altNode,
@@ -513,8 +513,8 @@ describe('parseRoutePattern', () => {
     };
     altNode.children.push(pathNode2);
 
-    const segNode2: AstNode = {
-      nodeType: AstNodeType.PATH_SEGMENT,
+    const segNode2: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
       children: [],
       parent: pathNode2,
       start: 6,
@@ -522,8 +522,8 @@ describe('parseRoutePattern', () => {
     };
     pathNode2.children.push(segNode2);
 
-    const textNode2: AstNode = {
-      nodeType: AstNodeType.TEXT,
+    const textNode2: Node = {
+      nodeType: NodeType.TEXT,
       value: 'bar',
       parent: segNode2,
       start: 6,
@@ -531,18 +531,18 @@ describe('parseRoutePattern', () => {
     };
     segNode2.children.push(textNode2);
 
-    expect(parseRoutePattern('{foo, bar}')).toEqual(rootNode);
+    expect(parsePattern('{foo, bar}')).toEqual(rootNode);
   });
 
   test('throws on unexpected alternation separator', () => {
-    expect(() => parseRoutePattern('foo, bar}')).toThrow();
+    expect(() => parsePattern('foo, bar}')).toThrow();
   });
 
   test('throws on unexpected alternation end', () => {
-    expect(() => parseRoutePattern('foo}')).toThrow();
+    expect(() => parsePattern('foo}')).toThrow();
   });
 
   test('throws on unterminated alternation', () => {
-    expect(() => parseRoutePattern('{foo')).toThrow();
+    expect(() => parsePattern('{foo')).toThrow();
   });
 });

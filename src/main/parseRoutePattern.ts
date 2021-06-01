@@ -159,9 +159,9 @@ export function parseRoutePattern(str: string): IPathAstNode {
       });
     },
 
-    onLiteral(value, start, end) {
+    onText(value, start, end) {
       pushNode({
-        nodeType: AstNodeType.LITERAL,
+        nodeType: AstNodeType.TEXT,
         value,
         parent,
         start,
@@ -197,7 +197,7 @@ export function parseRoutePattern(str: string): IPathAstNode {
     throw new SyntaxError(`Unexpected syntax after ${length}`);
   }
   if (altDepth !== 0) {
-    throw new SyntaxError(`Expected alternation end at ${length}`);
+    throw new SyntaxError(`Unterminated alternation at ${length}`);
   }
 
   return root;

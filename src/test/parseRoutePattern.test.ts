@@ -129,7 +129,7 @@ describe('parseRoutePattern', () => {
     expect(parseRoutePattern('**')).toEqual(rootNode);
   });
 
-  test('parses literals', () => {
+  test('parses text', () => {
     const rootNode: AstNode = {
       nodeType: AstNodeType.PATH,
       absolute: false,
@@ -148,14 +148,14 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode1);
 
-    const literalNode1: AstNode = {
-      nodeType: AstNodeType.LITERAL,
+    const textNode1: AstNode = {
+      nodeType: AstNodeType.TEXT,
       value: 'foo',
       parent: segNode1,
       start: 0,
       end: 3,
     };
-    segNode1.children.push(literalNode1);
+    segNode1.children.push(textNode1);
 
     const segNode2: AstNode = {
       nodeType: AstNodeType.PATH_SEGMENT,
@@ -166,19 +166,19 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode2);
 
-    const literalNode2: AstNode = {
-      nodeType: AstNodeType.LITERAL,
+    const textNode2: AstNode = {
+      nodeType: AstNodeType.TEXT,
       value: 'bar',
       parent: segNode2,
       start: 4,
       end: 7,
     };
-    segNode2.children.push(literalNode2);
+    segNode2.children.push(textNode2);
 
     expect(parseRoutePattern('foo/bar')).toEqual(rootNode);
   });
 
-  test('parses quoted literals', () => {
+  test('parses quoted text', () => {
     const rootNode: AstNode = {
       nodeType: AstNodeType.PATH,
       absolute: false,
@@ -197,14 +197,14 @@ describe('parseRoutePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const literalNode: AstNode = {
-      nodeType: AstNodeType.LITERAL,
+    const textNode: AstNode = {
+      nodeType: AstNodeType.TEXT,
       value: 'foo bar',
       parent: segNode,
       start: 1,
       end: 10,
     };
-    segNode.children.push(literalNode);
+    segNode.children.push(textNode);
 
     expect(parseRoutePattern(' "foo bar" ')).toEqual(rootNode);
   });
@@ -273,7 +273,7 @@ describe('parseRoutePattern', () => {
     expect(parseRoutePattern(':foo')).toEqual(rootNode);
   });
 
-  test('parses variable with literal constraint', () => {
+  test('parses variable with text constraint', () => {
     const rootNode: AstNode = {
       nodeType: AstNodeType.PATH,
       absolute: false,
@@ -303,7 +303,7 @@ describe('parseRoutePattern', () => {
     segNode.children.push(varNode);
 
     varNode.constraint = {
-      nodeType: AstNodeType.LITERAL,
+      nodeType: AstNodeType.TEXT,
       value: 'bar',
       parent: varNode,
       start: 5,
@@ -313,7 +313,7 @@ describe('parseRoutePattern', () => {
     expect(parseRoutePattern(':foo bar')).toEqual(rootNode);
   });
 
-  test('parses variable with quoted literal constraint', () => {
+  test('parses variable with quoted text constraint', () => {
     const rootNode: AstNode = {
       nodeType: AstNodeType.PATH,
       absolute: false,
@@ -343,7 +343,7 @@ describe('parseRoutePattern', () => {
     segNode.children.push(varNode);
 
     varNode.constraint = {
-      nodeType: AstNodeType.LITERAL,
+      nodeType: AstNodeType.TEXT,
       value: 'bar',
       parent: varNode,
       start: 4,
@@ -383,21 +383,21 @@ describe('parseRoutePattern', () => {
     segNode.children.push(varNode);
 
     varNode.constraint = {
-      nodeType: AstNodeType.LITERAL,
+      nodeType: AstNodeType.TEXT,
       value: 'bar',
       parent: varNode,
       start: 4,
       end: 9,
     };
 
-    const literalNode: AstNode = {
-      nodeType: AstNodeType.LITERAL,
+    const textNode: AstNode = {
+      nodeType: AstNodeType.TEXT,
       value: 'qux',
       parent: segNode,
       start: 10,
       end: 13,
     };
-    segNode.children.push(literalNode);
+    segNode.children.push(textNode);
 
     expect(parseRoutePattern(':foo"bar" qux')).toEqual(rootNode);
   });
@@ -494,14 +494,14 @@ describe('parseRoutePattern', () => {
     };
     pathNode1.children.push(segNode1);
 
-    const literalNode1: AstNode = {
-      nodeType: AstNodeType.LITERAL,
+    const textNode1: AstNode = {
+      nodeType: AstNodeType.TEXT,
       value: 'foo',
       parent: segNode1,
       start: 1,
       end: 4,
     };
-    segNode1.children.push(literalNode1);
+    segNode1.children.push(textNode1);
 
     const pathNode2: AstNode = {
       nodeType: AstNodeType.PATH,
@@ -522,14 +522,14 @@ describe('parseRoutePattern', () => {
     };
     pathNode2.children.push(segNode2);
 
-    const literalNode2: AstNode = {
-      nodeType: AstNodeType.LITERAL,
+    const textNode2: AstNode = {
+      nodeType: AstNodeType.TEXT,
       value: 'bar',
       parent: segNode2,
       start: 6,
       end: 9,
     };
-    segNode2.children.push(literalNode2);
+    segNode2.children.push(textNode2);
 
     expect(parseRoutePattern('{foo, bar}')).toEqual(rootNode);
   });

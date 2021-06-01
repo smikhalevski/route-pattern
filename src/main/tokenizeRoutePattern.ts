@@ -1,15 +1,17 @@
 import {allCharBy, char, CharCodeChecker, ReturnCode, seq, substr, Taker} from './parser-dsl';
-import {decodeLiteral} from './decodeLiteral';
 import {CharCode} from './CharCode';
 
-const isSpaceChar: CharCodeChecker = (c) => c === 0x20 || c === 0x09 || c === 0xD || c === 0xA;
+const isSpaceChar: CharCodeChecker = (c) =>
+    c === 0x20
+    || c === CharCode['\t']
+    || c === CharCode['\r']
+    || c === CharCode['\n'];
 
-const isVariableNameChar: CharCodeChecker = (c) => (
+const isVariableNameChar: CharCodeChecker = (c) =>
     c >= CharCode['a'] && c <= CharCode['z']
     || c >= CharCode['A'] && c <= CharCode['Z']
     || c === CharCode['$']
-    || c === CharCode['_']
-);
+    || c === CharCode['_'];
 
 const takeSpace = allCharBy(isSpaceChar);
 
@@ -27,37 +29,41 @@ const takeWildcard = char(CharCode['*']);
 
 const takePathSeparator = char(CharCode['/']);
 
-const takeLiteral: Taker = (str, i) => {
-  if (str.charCodeAt(i) !== CharCode['"']) {
+let lastText = '';
+
+const takeText: Taker = (str, i) => {
+  const quoteCode = str.charCodeAt(i);
+  if (quoteCode !== CharCode['"'] && quoteCode !== CharCode['\'']) {
     return ReturnCode.NO_MATCH;
   }
   i++;
 
   const charCount = str.length;
+  let j = i;
 
+  lastText = '';
   while (i < charCount) {
     switch (str.charCodeAt(i)) {
 
-      case CharCode['"']:
+      case quoteCode:
+        lastText += str.substring(j, i);
         return i + 1;
 
       case CharCode['\\']:
-        i++;
+        lastText += str.substring(j, i);
+        j = ++i;
         break;
     }
     i++;
   }
+
+  lastText = '';
   return ReturnCode.ERROR;
 };
 
-/**
- * The number of groups in the regexp that was read during the last invocation of {@link takeRegExp}.
- */
-let groupCount = 0;
+let lastGroupCount = 0;
 
 const takeRegExp: Taker = (str, i) => {
-  groupCount = 0;
-
   if (str.charCodeAt(i) !== CharCode['(']) {
     return ReturnCode.NO_MATCH;
   }
@@ -67,11 +73,12 @@ const takeRegExp: Taker = (str, i) => {
 
   let groupDepth = 0;
 
+  lastGroupCount = 0;
   while (i < charCount) {
     switch (str.charCodeAt(i)) {
 
       case CharCode['(']:
-        groupCount++;
+        lastGroupCount++;
         groupDepth++;
         break;
 
@@ -89,7 +96,7 @@ const takeRegExp: Taker = (str, i) => {
     i++;
   }
 
-  groupCount = 0;
+  lastGroupCount = 0;
   return ReturnCode.ERROR;
 };
 
@@ -104,7 +111,7 @@ export interface RoutePatternTokenizerOptions {
   onAltSeparator?: OffsetCallback;
   onWildcard?: (greedy: boolean, start: number, end: number) => void;
   onRegExp?: (pattern: string, groupCount: number, start: number, end: number) => void;
-  onLiteral?: DataCallback;
+  onText?: DataCallback;
   onPathSeparator?: OffsetCallback;
 }
 
@@ -116,7 +123,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     onAltSeparator,
     onWildcard,
     onRegExp,
-    onLiteral,
+    onText,
     onPathSeparator,
   } = options;
 
@@ -127,7 +134,7 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
 
   const emitText = () => {
     if (textStart !== -1) {
-      onLiteral?.(str.substring(textStart, textEnd), textStart, textEnd);
+      onText?.(str.substring(textStart, textEnd), textStart, textEnd);
       textStart = -1;
     }
   };
@@ -205,10 +212,10 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
       continue;
     }
 
-    j = takeLiteral(str, i);
+    j = takeText(str, i);
     if (j >= 0) {
       emitText();
-      onLiteral?.(decodeLiteral(str.substring(i + 1, j - 1)), i, j);
+      onText?.(lastText, i, j);
       i = j;
       continue;
     } else if (j === ReturnCode.ERROR) {
@@ -218,14 +225,14 @@ export function tokenizeRoutePattern(str: string, options: RoutePatternTokenizer
     j = takeRegExp(str, i);
     if (j >= 0) {
       emitText();
-      onRegExp?.(str.substring(i + 1, j - 1), groupCount, i, j);
+      onRegExp?.(str.substring(i + 1, j - 1), lastGroupCount, i, j);
       i = j;
       continue;
     } else if (j === ReturnCode.ERROR) {
       return i;
     }
 
-    // The start of the unquoted literal.
+    // The start of the unquoted text.
     if (textStart === -1) {
       textStart = i;
     }

@@ -8,7 +8,7 @@ describe('tokenizeRoutePattern', () => {
   const onAltSeparatorMock = jest.fn();
   const onWildcardMock = jest.fn();
   const onRegExpMock = jest.fn();
-  const onLiteralMock = jest.fn();
+  const onTextMock = jest.fn();
   const onPathSeparatorMock = jest.fn();
 
   const options: RoutePatternTokenizerOptions = {
@@ -18,7 +18,7 @@ describe('tokenizeRoutePattern', () => {
     onAltSeparator: onAltSeparatorMock,
     onWildcard: onWildcardMock,
     onRegExp: onRegExpMock,
-    onLiteral: onLiteralMock,
+    onText: onTextMock,
     onPathSeparator: onPathSeparatorMock,
   };
 
@@ -29,7 +29,7 @@ describe('tokenizeRoutePattern', () => {
     onAltSeparatorMock.mockReset();
     onWildcardMock.mockReset();
     onRegExpMock.mockReset();
-    onLiteralMock.mockReset();
+    onTextMock.mockReset();
     onPathSeparatorMock.mockReset();
   });
 
@@ -46,7 +46,7 @@ describe('tokenizeRoutePattern', () => {
     expect(onAltSeparatorMock).not.toHaveBeenCalled();
     expect(onWildcardMock).not.toHaveBeenCalled();
     expect(onRegExpMock).not.toHaveBeenCalled();
-    expect(onLiteralMock).not.toHaveBeenCalled();
+    expect(onTextMock).not.toHaveBeenCalled();
     expect(onPathSeparatorMock).not.toHaveBeenCalled();
   });
 
@@ -126,46 +126,46 @@ describe('tokenizeRoutePattern', () => {
     expect(onRegExpMock).not.toHaveBeenCalled();
   });
 
-  test('parses literals', () => {
+  test('parses text', () => {
     expect(tokenizeRoutePattern('"foo"', options)).toBe(5);
 
-    expect(onLiteralMock).toHaveBeenCalledTimes(1);
-    expect(onLiteralMock).toHaveBeenCalledWith('foo', 0, 5);
+    expect(onTextMock).toHaveBeenCalledTimes(1);
+    expect(onTextMock).toHaveBeenCalledWith('foo', 0, 5);
   });
 
-  test('respects escape char in literals', () => {
+  test('respects escape char in text', () => {
     expect(tokenizeRoutePattern('"fo\\"o"', options)).toBe(7);
 
-    expect(onLiteralMock).toHaveBeenCalledTimes(1);
-    expect(onLiteralMock).toHaveBeenCalledWith('fo"o', 0, 7);
+    expect(onTextMock).toHaveBeenCalledTimes(1);
+    expect(onTextMock).toHaveBeenCalledWith('fo"o', 0, 7);
   });
 
-  test('parses unquoted literals', () => {
+  test('parses unquoted text', () => {
     expect(tokenizeRoutePattern('foo', options)).toBe(3);
 
-    expect(onLiteralMock).toHaveBeenCalledTimes(1);
-    expect(onLiteralMock).toHaveBeenCalledWith('foo', 0, 3);
+    expect(onTextMock).toHaveBeenCalledTimes(1);
+    expect(onTextMock).toHaveBeenCalledWith('foo', 0, 3);
   });
 
-  test('ignores spaces around unquoted literals', () => {
+  test('ignores spaces around unquoted text', () => {
     expect(tokenizeRoutePattern('  \nfoo\t', options)).toBe(7);
 
-    expect(onLiteralMock).toHaveBeenCalledTimes(1);
-    expect(onLiteralMock).toHaveBeenCalledWith('foo', 3, 6);
+    expect(onTextMock).toHaveBeenCalledTimes(1);
+    expect(onTextMock).toHaveBeenCalledWith('foo', 3, 6);
   });
 
-  test('ignores spaces between unquoted literals', () => {
+  test('ignores spaces between unquoted text', () => {
     expect(tokenizeRoutePattern('  \nfoo  bar\t', options)).toBe(12);
 
-    expect(onLiteralMock).toHaveBeenCalledTimes(2);
-    expect(onLiteralMock).toHaveBeenNthCalledWith(1, 'foo', 3, 6);
-    expect(onLiteralMock).toHaveBeenNthCalledWith(2, 'bar', 8, 11);
+    expect(onTextMock).toHaveBeenCalledTimes(2);
+    expect(onTextMock).toHaveBeenNthCalledWith(1, 'foo', 3, 6);
+    expect(onTextMock).toHaveBeenNthCalledWith(2, 'bar', 8, 11);
   });
 
-  test('stops parsing if literal is not closed', () => {
+  test('stops parsing if text closing quote is missing', () => {
     expect(tokenizeRoutePattern('"foo', options)).toBe(0);
 
-    expect(onLiteralMock).not.toHaveBeenCalled();
+    expect(onTextMock).not.toHaveBeenCalled();
   });
 
   test('parses path separators', () => {
@@ -184,9 +184,9 @@ describe('tokenizeRoutePattern', () => {
     expect(onPathSeparatorMock).toHaveBeenNthCalledWith(2, 4, 5);
     expect(onPathSeparatorMock).toHaveBeenNthCalledWith(3, 32, 33);
 
-    expect(onLiteralMock).toHaveBeenCalledTimes(2);
-    expect(onLiteralMock).toHaveBeenNthCalledWith(1, 'aaa', 1, 4);
-    expect(onLiteralMock).toHaveBeenNthCalledWith(2, 'qqq', 25, 30);
+    expect(onTextMock).toHaveBeenCalledTimes(2);
+    expect(onTextMock).toHaveBeenNthCalledWith(1, 'aaa', 1, 4);
+    expect(onTextMock).toHaveBeenNthCalledWith(2, 'qqq', 25, 30);
 
     expect(onVariableMock).toHaveBeenCalledTimes(2);
     expect(onVariableMock).toHaveBeenNthCalledWith(1, 'foo', 7, 11);

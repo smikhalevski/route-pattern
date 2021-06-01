@@ -21,10 +21,16 @@ export const enum ReturnCode {
   ERROR = -2,
 }
 
+/**
+ * Takes a single char with the given code.
+ */
 export function char(charCode: number): Taker {
   return (str, i) => str.charCodeAt(i) === charCode ? i + 1 : ReturnCode.NO_MATCH;
 }
 
+/**
+ * Takes a single char if it matches the checker.
+ */
 export function charBy(charCodeChecker: CharCodeChecker): Taker {
   return (str, i) => charCodeChecker(str.charCodeAt(i)) ? i + 1 : ReturnCode.NO_MATCH;
 }

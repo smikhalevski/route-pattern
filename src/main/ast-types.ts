@@ -1,11 +1,11 @@
 export const enum AstNodeType {
-  PATH = 'path',
-  PATH_SEGMENT = 'path_segment',
-  VARIABLE = 'variable',
-  ALT = 'alt',
-  WILDCARD = 'wildcard',
-  REG_EXP = 'reg_exp',
-  LITERAL = 'literal',
+  PATH,
+  PATH_SEGMENT,
+  VARIABLE,
+  ALT,
+  WILDCARD,
+  REG_EXP,
+  TEXT,
 }
 
 export type AstNode =
@@ -15,7 +15,7 @@ export type AstNode =
     | IVariableAstNode
     | IWildcardAstNode
     | IRegExpAstNode
-    | ILiteralAstNode;
+    | ITextAstNode;
 
 export interface IAstNode {
   parent: AstNode | null;
@@ -56,7 +56,7 @@ export interface IRegExpAstNode extends IAstNode {
   groupCount: number;
 }
 
-export interface ILiteralAstNode extends IAstNode {
-  nodeType: AstNodeType.LITERAL;
+export interface ITextAstNode extends IAstNode {
+  nodeType: AstNodeType.TEXT;
   value: string;
 }

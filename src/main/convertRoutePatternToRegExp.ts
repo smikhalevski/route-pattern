@@ -1,60 +1,64 @@
-import {parseRoutePattern} from './parseRoutePattern';
 import {visitRoutePattern} from './visitRoutePattern';
 import {escapeRegExp} from './escapeRegExp';
-import {AstNodeType} from './ast-types';
+import {AstNode, AstNodeType} from './ast-types';
 
-export function convertRoutePatternToRegExp(str: string): RegExp {
-  let re = '';
+export function convertRoutePatternToRegExp(node: AstNode): { re: RegExp, vars: Record<string, number> } {
+  let pattern = '';
 
-  let varIndex = 1;
-  let varMap = new Map<string, number>();
+  let groupIndex = 1;
+  let vars: Record<string, number> = {};
 
-  visitRoutePattern(parseRoutePattern(str), {
+  visitRoutePattern(node, {
 
     onPath(node, next) {
-      if (node.parent?.nodeType === AstNodeType.ALT && node.parent.children[0] !== node) {
-        re += '|';
+      const parent = node.parent;
+      if (parent?.nodeType === AstNodeType.ALT && parent.children[0] !== node) {
+        pattern += '|';
       }
       next();
     },
 
     onPathSegment(node, next) {
-      if (node.parent?.nodeType === AstNodeType.PATH && (node.parent.children[0] === node && node.parent.absolute || node.parent.children[0] !== node)) {
-        re += '[\\\\/]';
+      const parent = node.parent;
+      if (parent?.nodeType === AstNodeType.PATH && (parent.children[0] !== node || parent.absolute)) {
+        pattern += '[\\\\/]';
       }
       next();
     },
 
     onAlt(node, next) {
-      re += '(?:';
+      pattern += '(?:';
       next();
-      re += ')';
+      pattern += ')';
     },
 
     onVariable(node, next) {
-      varMap.set(node.name, varIndex++);
-      re += '(';
+      vars[node.name] = groupIndex++;
+      pattern += '(';
       if (node.constraint) {
         next();
       } else {
-        re += '[^\\\\/]*';
+        pattern += '[^\\\\/]*';
       }
-      re += ')';
+      pattern += ')';
     },
 
     onWildcard(node) {
-      re += node.greedy ? '.+' : '[^\\\\/]+?';
+      pattern += node.greedy ? '.+' : '[^\\\\/]+?';
     },
 
     onRegExp(node) {
-      varIndex += node.groupCount;
-      re += '(?:' + node.pattern + ')';
+      groupIndex += node.groupCount;
+      pattern += '(?:' + node.pattern + ')';
     },
 
-    onLiteral(node) {
-      re += escapeRegExp(node.value);
+    onText(node) {
+      pattern += escapeRegExp(node.value);
     },
   });
 
-  return RegExp('^' + re);
+  return {
+    re: RegExp('^' + pattern),
+    vars,
+  };
 }

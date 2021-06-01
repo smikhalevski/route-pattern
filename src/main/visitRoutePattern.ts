@@ -2,7 +2,7 @@ import {
   AstNode,
   AstNodeType,
   IAltAstNode,
-  ILiteralAstNode,
+  ITextAstNode,
   IPathAstNode,
   IPathSegmentAstNode,
   IRegExpAstNode,
@@ -17,7 +17,7 @@ export interface IRoutePatternVisitor {
   onVariable?: (node: IVariableAstNode, next: () => void) => void;
   onWildcard?: (node: IWildcardAstNode) => void;
   onRegExp?: (node: IRegExpAstNode) => void;
-  onLiteral?: (node: ILiteralAstNode) => void;
+  onText?: (node: ITextAstNode) => void;
 }
 
 export function visitRoutePattern(node: AstNode | null | undefined, visitor: IRoutePatternVisitor): void {
@@ -47,8 +47,8 @@ export function visitRoutePattern(node: AstNode | null | undefined, visitor: IRo
       visitor.onRegExp?.(node);
       break;
 
-    case AstNodeType.LITERAL:
-      visitor.onLiteral?.(node);
+    case AstNodeType.TEXT:
+      visitor.onText?.(node);
       break;
   }
 }

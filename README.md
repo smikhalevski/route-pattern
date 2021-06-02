@@ -1,6 +1,18 @@
-# route-pattern
+# route-pattern [![Build Status](https://travis-ci.com/smikhalevski/route-pattern.svg?branch=main)](https://travis-ci.com/smikhalevski/route-pattern)
 
-Library that parses route patterns and produces `RegExp`s that match those patterns.
+The path pattern parser, that supports named variables, variable constraints, bash-like alternation, regular expressions, and wildcards.
+
+```js
+import {convertPatternToRegExp} from 'route-pattern';
+
+const result = convertPatternToRegExp('/(\\d+)/:foo{ bar, qux }');
+  // → { re: /…/, vars: {foo: 2} };
+
+const match = result.re.exec('/123/bar');
+  // → ['/123/bar', 'bar']
+
+console.log(match[result.varMap.foo]); // → 'bar'
+```
 
 1. `/foo/bar` is a literal path that is matched as is.
 
@@ -34,17 +46,3 @@ Library that parses route patterns and produces `RegExp`s that match those patte
 1. `:foo{**}` variables can be restricted with wildcards;
 
 1. Variables can be nested: `/aaa/ :foo{ /bbb, /ccc/:bar }`;
-
-## How to use?
-
-```js
-import {convertPatternToRegExp} from 'route-pattern';
-
-const result = convertPatternToRegExp('/(\\d+)/:foo{ bar, qux }');
-  // → { re: /…/, vars: {foo: 2} };
-
-const match = result.re.exec('/123/bar');
-  // → ['/123/bar', 'bar']
-
-console.log(match[result.varMap.foo]); // → 'bar'
-```

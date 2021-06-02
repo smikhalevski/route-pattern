@@ -1,4 +1,4 @@
-# route-pattern [![Build Status](https://travis-ci.com/smikhalevski/route-pattern.svg?branch=main)](https://travis-ci.com/smikhalevski/route-pattern)
+# route-pattern [![Build Status](https://travis-ci.com/smikhalevski/route-pattern.svg?branch=master)](https://travis-ci.com/smikhalevski/route-pattern)
 
 The path pattern parser, that supports named variables, variable constraints, bash-like alternation, regular expressions, and wildcards.
 
@@ -8,16 +8,17 @@ import {convertPatternToRegExp} from 'route-pattern';
 const result = convertPatternToRegExp('/(\\d+)/:foo{ bar, qux }');
   // → { re: /…/, vars: {foo: 2} };
 
-const match = result.re.exec('/123/bar');
-  // → ['/123/bar', 'bar']
+const match = result.re.exec('/123/bar'); // → ['/123/bar', 'bar']
 
 console.log(match[result.varMap.foo]); // → 'bar'
 ```
 
+# Features
+
 1. `/foo/bar` is a literal path that is matched as is.
 
-1. Spaces are ignored, so `/ foo / bar` is the same as `/foo/bar`. And `/foo  bar` is the same as `/foobar`, note the
-   absent spaces;
+1. Spaces, tabs and newlines are ignored, so `/ foo / bar` is the same as `/foo/bar`, and `/foo  bar` is the same
+   as `/foobar` (note the absent spaces);
 
 1. If you want to preserve spaces, use quotes: `/" foo bar"`
 

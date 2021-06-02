@@ -1,11 +1,11 @@
 import {convertNodeToRegExp} from '../main/convertNodeToRegExp';
 import {parsePattern} from '../main';
 
-describe('convertRoutePatternToRegExp', () => {
+describe('convertNodeToRegExp', () => {
 
   test('converts variable', () => {
     expect(convertNodeToRegExp(parsePattern(':foo'))).toEqual({
-      re: /^([^\\/]*)/,
+      re: /^([^/]*)/,
       varMap: {foo: 1},
     });
   });
@@ -33,7 +33,7 @@ describe('convertRoutePatternToRegExp', () => {
 
   test('converts variables with respect to regexp group count', () => {
     expect(convertNodeToRegExp(parsePattern('(([abc]))/:foo(\\d+)'))).toEqual({
-      re: /^(?:([abc]))[\\/]((?:\d+))/,
+      re: /^(?:([abc]))\/((?:\d+))/,
       varMap: {foo: 2},
     });
   });
@@ -54,7 +54,7 @@ describe('convertRoutePatternToRegExp', () => {
 
   test('converts wildcards', () => {
     expect(convertNodeToRegExp(parsePattern('*'))).toEqual({
-      re: /^[^\\/]+?/,
+      re: /^[^/]+?/,
       varMap: {},
     });
   });
@@ -75,21 +75,21 @@ describe('convertRoutePatternToRegExp', () => {
 
   test('converts alternation with leading path separator', () => {
     expect(convertNodeToRegExp(parsePattern('/{foo,bar}'))).toEqual({
-      re: /^[\\/](?:foo|bar)/,
+      re: /^\/(?:foo|bar)/,
       varMap: {},
     });
   });
 
   test('converts alternation with path separator inside branch', () => {
     expect(convertNodeToRegExp(parsePattern('{ /foo, bar }'))).toEqual({
-      re: /^(?:[\\/]foo|bar)/,
+      re: /^(?:\/foo|bar)/,
       varMap: {},
     });
   });
 
   test('converts complex pattern', () => {
     expect(convertNodeToRegExp(parsePattern('/aaa{ :foo{ /bbb, :bar(ccc|ddd) }/**}'))).toEqual({
-      re: /^[\\/]aaa(?:((?:[\\/]bbb|((?:ccc|ddd))))[\\/].+)/,
+      re: /^\/aaa(?:((?:\/bbb|((?:ccc|ddd))))\/.+)/,
       varMap: {foo: 1, bar: 2},
     });
   });

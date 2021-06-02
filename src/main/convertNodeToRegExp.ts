@@ -45,7 +45,7 @@ export function convertNodeToRegExp(node: Node): IPatternRegExp {
     onPathSegment(node, next) {
       const parent = node.parent;
       if (parent?.nodeType === NodeType.PATH && (parent.children[0] !== node || parent.absolute)) {
-        pattern += '[\\\\/]';
+        pattern += '/';
       }
       next();
     },
@@ -62,13 +62,13 @@ export function convertNodeToRegExp(node: Node): IPatternRegExp {
       if (node.constraint) {
         next();
       } else {
-        pattern += '[^\\\\/]*';
+        pattern += '[^/]*';
       }
       pattern += ')';
     },
 
     onWildcard(node) {
-      pattern += node.greedy ? '.+' : '[^\\\\/]+?';
+      pattern += node.greedy ? '.+' : '[^/]+?';
     },
 
     onRegExp(node) {

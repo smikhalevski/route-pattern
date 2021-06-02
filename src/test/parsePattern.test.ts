@@ -1,7 +1,7 @@
 import {parsePattern} from '../main/parsePattern';
 import {Node, NodeType} from '../main/ast-types';
 
-describe('parseRoutePattern', () => {
+describe('parsePattern', () => {
 
   test('parses blank pattern', () => {
     expect(parsePattern(' ')).toEqual(<Node>{

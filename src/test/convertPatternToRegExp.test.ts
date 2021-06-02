@@ -1,6 +1,6 @@
 import {convertPatternToRegExp} from '../main';
 
-describe('docs', () => {
+describe('convertPatternToRegExp', () => {
 
   test('readme example', () => {
     const result = convertPatternToRegExp('/(\\d+)/:foo{ bar, qux }');

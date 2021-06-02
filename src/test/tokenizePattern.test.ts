@@ -1,6 +1,6 @@
 import {IPatternTokenizerOptions, tokenizePattern} from '../main/tokenizePattern';
 
-describe('tokenizeRoutePattern', () => {
+describe('tokenizePattern', () => {
 
   const onVariableMock = jest.fn();
   const onAltStartMock = jest.fn();
@@ -127,6 +127,13 @@ describe('tokenizeRoutePattern', () => {
   });
 
   test('parses text', () => {
+    expect(tokenizePattern('\'foo\'', options)).toBe(5);
+
+    expect(onTextMock).toHaveBeenCalledTimes(1);
+    expect(onTextMock).toHaveBeenCalledWith('foo', 0, 5);
+  });
+
+  test('parses text in quotes', () => {
     expect(tokenizePattern('"foo"', options)).toBe(5);
 
     expect(onTextMock).toHaveBeenCalledTimes(1);
@@ -222,5 +229,20 @@ describe('tokenizeRoutePattern', () => {
     expect(onVariableMock).toHaveBeenNthCalledWith(1, 'foo', 7, 11);
 
     expect(onRegExpMock).not.toHaveBeenCalled();
+  });
+
+  test('parses weird chars as text', () => {
+    expect(tokenizePattern('!@#$%^&', options)).toBe(7);
+
+    expect(onTextMock).toHaveBeenCalledTimes(1);
+    expect(onTextMock).toHaveBeenNthCalledWith(1, '!@#$%^&', 0, 7);
+  });
+
+  test('parses newline as a space char', () => {
+    expect(tokenizePattern('foo\nbar', options)).toBe(7);
+
+    expect(onTextMock).toHaveBeenCalledTimes(2);
+    expect(onTextMock).toHaveBeenNthCalledWith(1, 'foo', 0, 3);
+    expect(onTextMock).toHaveBeenNthCalledWith(2, 'bar', 4, 7);
   });
 });

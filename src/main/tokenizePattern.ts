@@ -10,12 +10,13 @@ const isSpaceChar: CharCodeChecker = (c) =>
 const isVariableNameChar: CharCodeChecker = (c) =>
     c >= CharCode['a'] && c <= CharCode['z']
     || c >= CharCode['A'] && c <= CharCode['Z']
+    || c >= CharCode['00'] && c <= CharCode['09']
     || c === CharCode['$']
     || c === CharCode['_'];
 
 const takeSpace = allCharBy(isSpaceChar);
 
-const takeVariable = seq(char(CharCode[':']), allCharBy(isVariableNameChar));
+const takeVariable = seq(char(CharCode[':']), allCharBy(isVariableNameChar, 1));
 
 const takeAltStart = char(CharCode['{']);
 
@@ -31,7 +32,7 @@ const takePathSeparator = char(CharCode['/']);
 
 let lastText = '';
 
-const takeText: Taker = (str, i) => {
+const takeQuotedText: Taker = (str, i) => {
   const quoteCode = str.charCodeAt(i);
   if (quoteCode !== CharCode['"'] && quoteCode !== CharCode['\'']) {
     return ResultCode.NO_MATCH;
@@ -42,6 +43,7 @@ const takeText: Taker = (str, i) => {
   let j = i;
 
   lastText = '';
+
   while (i < charCount) {
     switch (str.charCodeAt(i)) {
 
@@ -58,6 +60,7 @@ const takeText: Taker = (str, i) => {
   }
 
   lastText = '';
+
   return ResultCode.ERROR;
 };
 
@@ -219,7 +222,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
       continue;
     }
 
-    j = takeText(str, i);
+    j = takeQuotedText(str, i);
     if (j >= 0) {
       emitText();
       onText?.(lastText, i, j);

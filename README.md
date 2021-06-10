@@ -34,7 +34,7 @@ console.log(match[result.varMap.foo]); // → 'bar'
 
 1. Alternation supports nesting, for example `/foo{ -bar, /(\\d+)/qux }` would match `/foo-bar` and `/foo/123/qux`;
 
-1. `:foo` declares a variable;
+1. `:foo` declares a variable. Variable name should match `^[A-Za-z0-9$_]+$`;
 
 1. `:foo_www` would read variable with name `foo_www`. To prevent unexpected parsing surround string literals with
    quotes. For example, `:foo _www` and `:foo"_www"` would both read variable `foo` and treat `_www` as a string

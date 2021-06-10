@@ -57,6 +57,13 @@ describe('tokenizePattern', () => {
     expect(onVariableMock).toHaveBeenCalledWith('foo', 0, 4);
   });
 
+  test('parses variables with numbers', () => {
+    expect(tokenizePattern(':foo123', options)).toBe(7);
+
+    expect(onVariableMock).toHaveBeenCalledTimes(1);
+    expect(onVariableMock).toHaveBeenCalledWith('foo123', 0, 7);
+  });
+
   test('parses alternation start', () => {
     expect(tokenizePattern('{', options)).toBe(1);
 

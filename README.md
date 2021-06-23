@@ -2,8 +2,16 @@
 
 The path pattern parser, that supports named variables, variable constraints, bash-like alternation, regular expressions, and wildcards.
 
-```js
-import {convertPatternToRegExp} from 'route-pattern';
+This package is tiny and has no dependencies. [Just 2 kB gzipped.](https://bundlephobia.com/package/@smikhalevski/route-pattern) 
+
+```sh
+npm install --save-prod @smikhalevski/route-pattern
+```
+
+# Usage
+
+```ts
+import {convertPatternToRegExp} from '@smikhalevski/route-pattern';
 
 const re = convertPatternToRegExp('/(\\d+)/:foo{ bar, qux }');
 const match = re.exec('/123/bar');

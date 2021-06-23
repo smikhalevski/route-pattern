@@ -47,6 +47,6 @@
     "typescript": "^4.3.2"
   },
   "dependencies": {
-    "tokenizer-dsl": "1.0.0"
+    "tokenizer-dsl": "^1.0.1"
   }
 }

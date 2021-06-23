@@ -4,7 +4,7 @@ import {Node, NodeType} from '../main/ast-types';
 describe('parsePattern', () => {
 
   test('parses blank pattern', () => {
-    expect(parsePattern(' ')).toEqual(<Node>{
+    expect(parsePattern(' ')).toEqual<Node>({
       nodeType: NodeType.PATH,
       absolute: false,
       children: [],

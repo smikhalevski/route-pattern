@@ -2,31 +2,19 @@ import {visitNode} from './visitNode';
 import {escapeRegExp} from './escapeRegExp';
 import {Node, NodeType} from './ast-types';
 
-export interface IPatternRegExp {
-
-  /**
-   * The compiled regular expression.
-   */
-  re: RegExp;
-
-  /**
-   * Map from variable name to group index in `re`.
-   *
-   * @example
-   * const result = convertNodeToRegExp(parsePattern('/(\\d+)/:foo'));
-   * const match = result.re.match('/123/bar');
-   *
-   * console.log(match[result.foo]); // → 'bar'
-   */
-  varMap: Record<string, number>;
+export interface INodeToRegExpConverterOptions {
+  caseInsensitive?: boolean;
 }
 
 /**
  * Converts pattern AST node to regular expression.
  *
  * @param node The node to convert to `RegExp`.
+ * @param options Other options.
  */
-export function convertNodeToRegExp(node: Node): IPatternRegExp {
+export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterOptions = {}): RegExp {
+  const {caseInsensitive} = options;
+
   let pattern = '';
 
   let groupIndex = 1;
@@ -81,8 +69,27 @@ export function convertNodeToRegExp(node: Node): IPatternRegExp {
     },
   });
 
-  return {
-    re: RegExp('^' + pattern),
-    varMap,
+  const re = RegExp('^' + pattern, caseInsensitive ? 'i' : '');
+
+  if (groupIndex === 1) {
+    return re;
+  }
+
+  const reExec = re.exec;
+
+  re.exec = (str) => {
+    const arr = reExec.call(re, str);
+    if (arr != null) {
+      arr.groups = {};
+
+      for (const key in varMap) {
+        if (varMap.hasOwnProperty(key)) {
+          arr.groups[key] = arr[varMap[key]];
+        }
+      }
+    }
+    return arr;
   };
+
+  return re;
 }

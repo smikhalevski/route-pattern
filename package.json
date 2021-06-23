@@ -1,5 +1,5 @@
 {
-  "name": "route-pattern",
+  "name": "@smikhalevski/route-pattern",
   "version": "1.0.0",
   "description": "The path pattern parser, that supports named variables, variable constraints, bash-like alternation, regular expressions, and wildcards.",
   "main": "./lib/index-cjs.js",

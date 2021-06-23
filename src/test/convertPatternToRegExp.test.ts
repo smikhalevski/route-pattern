@@ -3,9 +3,9 @@ import {convertPatternToRegExp} from '../main';
 describe('convertPatternToRegExp', () => {
 
   test('readme example', () => {
-    const result = convertPatternToRegExp('/(\\d+)/:foo{ bar, qux }');
-    const match = result.re.exec('/123/bar');
+    const re = convertPatternToRegExp('/(\\d+)/:foo{ bar, qux }');
+    const match = re.exec('/123/bar');
 
-    expect(match?.[result.varMap.foo]).toBe('bar');
+    expect(match?.groups?.foo).toBe('bar');
   });
 });

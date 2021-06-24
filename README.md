@@ -32,11 +32,13 @@ as `/foobar` (note the absent spaces).
 
 If you want to preserve spaces, use quotes: `/" foo bar"`.
 
-## Regular expression
+Use the `\` char inside a quoted string literal to escape any other chars: `"foo\"bar"`.
+
+## Regular expressions
 
 `(\\d+)` declares a regular expression, spaces have meaning inside a regular expression.
 
-RegExps can contain a named capturing groups which are merged with variables. For example, `/:foo/(?<bar>abc)` would
+RegExps can contain a named capturing groups which are merged with variables. For example, `/:foo/((?<bar>abc))` would
 match `/123/abc` and groups would be `{foo: '123', bar: 'abc'}`.
 
 ## Wildcards
@@ -50,7 +52,7 @@ match `/foo/okay/bar`, `/foo//bar` and `/foo/no/sir/bar`.
 If you want to match at least one character, use a regular expression instead of a wildcard. For
 example, `/foo/([^/]+)/bar` would match `/foo/okay/bar` and won't match `/foo//bar`.
 
-## Alternation
+## Alternations
 
 `{ foo, bar }` declares an alternation: `foo` or `bar`.
 
@@ -62,7 +64,8 @@ Alternation supports nesting, for example `/foo{ -bar, /(\\d+)/qux }` would matc
 
 By default, variables match everything except the path separator.
 
-A single pattern that immediately follows the variable declaration is treated as a variable constraint. For example,`:foo bar` and `:foo"bar"` would both read variable `foo` and treat `bar` as its string literal constraint.
+A single pattern that immediately follows the variable declaration is treated as a variable constraint. For
+example,`:foo bar` and `:foo"bar"` would both read variable `foo` and treat `bar` as its string literal constraint.
 
 `:foo(\\d+)` declares a variable whose value is constrained by a regular expression.
 

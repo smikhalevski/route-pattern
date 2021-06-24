@@ -209,6 +209,86 @@ describe('parsePattern', () => {
     expect(parsePattern(' "foo bar" ')).toEqual(rootNode);
   });
 
+  test('does not respect escape character in non-quoted text', () => {
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 8,
+    };
+
+    const segNode1: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 4,
+    };
+    rootNode.children.push(segNode1);
+
+    const textNode1: Node = {
+      nodeType: NodeType.TEXT,
+      value: 'foo\\',
+      parent: segNode1,
+      start: 0,
+      end: 4,
+    };
+    segNode1.children.push(textNode1);
+
+    const segNode2: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 4,
+      end: 8,
+    };
+    rootNode.children.push(segNode2);
+
+    const textNode2: Node = {
+      nodeType: NodeType.TEXT,
+      value: 'bar',
+      parent: segNode2,
+      start: 5,
+      end: 8,
+    };
+    segNode2.children.push(textNode2);
+
+    expect(parsePattern('foo\\/bar')).toEqual(rootNode);
+  });
+
+  test('respects escape character in quoted text', () => {
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 10,
+    };
+
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 10,
+    };
+    rootNode.children.push(segNode);
+
+    const textNode: Node = {
+      nodeType: NodeType.TEXT,
+      value: 'foo"bar',
+      parent: segNode,
+      start: 0,
+      end: 10,
+    };
+    segNode.children.push(textNode);
+
+    expect(parsePattern('"foo\\"bar"')).toEqual(rootNode);
+  });
+
   test('parses regexp', () => {
     const rootNode: Node = {
       nodeType: NodeType.PATH,
@@ -421,7 +501,7 @@ describe('parsePattern', () => {
     };
     rootNode.children.push(segNode);
 
-    const var1Node: Node = {
+    const varNode1: Node = {
       nodeType: NodeType.VARIABLE,
       name: 'foo',
       constraint: null,
@@ -429,9 +509,9 @@ describe('parsePattern', () => {
       start: 0,
       end: 4,
     };
-    segNode.children.push(var1Node);
+    segNode.children.push(varNode1);
 
-    const var2Node: Node = {
+    const varNode2: Node = {
       nodeType: NodeType.VARIABLE,
       name: 'bar',
       constraint: null,
@@ -439,7 +519,7 @@ describe('parsePattern', () => {
       start: 4,
       end: 8,
     };
-    segNode.children.push(var2Node);
+    segNode.children.push(varNode2);
 
     expect(parsePattern(':foo:bar')).toEqual(rootNode);
   });

@@ -56,7 +56,7 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
     },
 
     onWildcard(node) {
-      pattern += node.greedy ? '.+' : '[^/]+?';
+      pattern += node.greedy ? '.*' : '[^/]*';
     },
 
     onRegExp(node) {

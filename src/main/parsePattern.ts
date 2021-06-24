@@ -25,10 +25,14 @@ export function parsePattern(str: string): IPathNode {
   const pushNode = (node: Node): void => {
 
     if (parent.nodeType === NodeType.VARIABLE) {
-      parent.constraint = node;
-      setEnd(node.end);
-      parent = parent.parent!;
-      return;
+      if (parent.constraint) {
+        parent = parent.parent!;
+      } else {
+        parent.constraint = node;
+        setEnd(node.end);
+        parent = parent.parent!;
+        return;
+      }
     }
 
     if (parent.nodeType === NodeType.PATH) {
@@ -69,6 +73,9 @@ export function parsePattern(str: string): IPathNode {
   let length = tokenizePattern(str, {
 
     onVariable(name, start, end) {
+      if (parent.nodeType === NodeType.VARIABLE) {
+        parent = parent.parent!;
+      }
       const node: Node = {
         nodeType: NodeType.VARIABLE,
         name,
@@ -78,9 +85,6 @@ export function parsePattern(str: string): IPathNode {
         end,
       };
 
-      if (parent.nodeType === NodeType.VARIABLE) {
-        throw new SyntaxError(`Consequent variables at ${start}`);
-      }
       pushNode(node);
       parent = node;
     },

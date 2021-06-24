@@ -32,11 +32,11 @@ describe('convertNodeToRegExp', () => {
   });
 
   test('converts wildcards', () => {
-    expect(convertNodeToRegExp(parsePattern('*'))).toEqual(/^[^/]+?/);
+    expect(convertNodeToRegExp(parsePattern('*'))).toEqual(/^[^/]*/);
   });
 
   test('converts greedy wildcards', () => {
-    expect(convertNodeToRegExp(parsePattern('**'))).toEqual(/^.+/);
+    expect(convertNodeToRegExp(parsePattern('**'))).toEqual(/^.*/);
   });
 
   test('converts alternation', () => {
@@ -52,7 +52,7 @@ describe('convertNodeToRegExp', () => {
   });
 
   test('converts complex pattern', () => {
-    expect(convertNodeToRegExp(parsePattern('/aaa{ :foo{ /bbb, :bar(ccc|ddd) }/**}'))).toEqual(/^\/aaa(?:((?:\/bbb|((?:ccc|ddd))))\/.+)/);
+    expect(convertNodeToRegExp(parsePattern('/aaa{ :foo{ /bbb, :bar(ccc|ddd) }/**}'))).toEqual(/^\/aaa(?:((?:\/bbb|((?:ccc|ddd))))\/.*)/);
   });
 
   test('adds exec to support groups', () => {
@@ -84,21 +84,45 @@ describe('convertNodeToRegExp', () => {
     expect(re.exec('/ABC')).toEqual(expect.objectContaining(['/ABC']));
   });
 
-  test('merges native groups and vars', () => {
+  test('merges native groups and variables', () => {
     const re = convertNodeToRegExp(parsePattern('/:foo/((?<bar>\\w+))'));
 
     expect(re.exec('/abc/123')?.groups).toEqual({foo: 'abc', bar: '123'});
   });
 
-  test('vars overwrite native groups with the same name', () => {
+  test('variables overwrite native groups with the same name', () => {
     const re = convertNodeToRegExp(parsePattern('/:foo/((?<foo>\\w+))'));
 
     expect(re.exec('/abc/123')?.groups).toEqual({foo: 'abc'});
   });
 
-  test('var can be named __proto__', () => {
+  test('variable can be named __proto__', () => {
     const re = convertNodeToRegExp(parsePattern('/:__proto__'));
 
     expect(re.exec('/abc')?.groups?.__proto__).toBe('abc');
+  });
+
+  test('variable can be preceded by a string', () => {
+    const re = convertNodeToRegExp(parsePattern('/foo-:bar'));
+
+    expect(re.exec('/foo-aaa')?.groups?.bar).toBe('aaa');
+  });
+
+  test('variable can be followed by a string', () => {
+    const re = convertNodeToRegExp(parsePattern('/:bar{*}-foo'));
+
+    expect(re.exec('/aaa-foo')?.groups?.bar).toBe('aaa');
+  });
+
+  test('sequential variables without constraint', () => {
+    const re = convertNodeToRegExp(parsePattern('/:foo:bar'));
+
+    expect(re.exec('/123abc')?.groups).toEqual({foo: '123abc', bar: ''});
+  });
+
+  test('sequential variables with constraint', () => {
+    const re = convertNodeToRegExp(parsePattern('/:foo:bar{abc}'));
+
+    expect(re.exec('/123abc')?.groups).toEqual({foo: '123', bar: 'abc'});
   });
 });

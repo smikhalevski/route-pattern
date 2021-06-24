@@ -402,8 +402,46 @@ describe('parsePattern', () => {
     expect(parsePattern(':foo"bar" qux')).toEqual(rootNode);
   });
 
-  test('throws on sequential variables', () => {
-    expect(() => parsePattern(':foo :bar')).toThrow();
+  test('parses sequential variables', () => {
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
+      absolute: false,
+      children: [],
+      parent: null,
+      start: 0,
+      end: 8,
+    };
+
+    const segNode: Node = {
+      nodeType: NodeType.PATH_SEGMENT,
+      children: [],
+      parent: rootNode,
+      start: 0,
+      end: 8,
+    };
+    rootNode.children.push(segNode);
+
+    const var1Node: Node = {
+      nodeType: NodeType.VARIABLE,
+      name: 'foo',
+      constraint: null,
+      parent: segNode,
+      start: 0,
+      end: 4,
+    };
+    segNode.children.push(var1Node);
+
+    const var2Node: Node = {
+      nodeType: NodeType.VARIABLE,
+      name: 'bar',
+      constraint: null,
+      parent: segNode,
+      start: 4,
+      end: 8,
+    };
+    segNode.children.push(var2Node);
+
+    expect(parsePattern(':foo:bar')).toEqual(rootNode);
   });
 
   test('parses empty alternation', () => {

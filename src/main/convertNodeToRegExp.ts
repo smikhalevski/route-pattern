@@ -16,9 +16,9 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
   const {caseInsensitive} = options;
 
   let pattern = '';
-
   let groupIndex = 1;
-  let varMap: Record<string, number> = {};
+
+  const varMap: Record<string, number> = Object.create(null);
 
   visitNode(node, {
 
@@ -80,12 +80,10 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
   re.exec = (str) => {
     const arr = reExec.call(re, str);
     if (arr != null) {
-      arr.groups = {};
+      arr.groups ||= Object.create(null) as Record<string, string>;
 
       for (const key in varMap) {
-        if (varMap.hasOwnProperty(key)) {
-          arr.groups[key] = arr[varMap[key]];
-        }
+        arr.groups[key] = arr[varMap[key]];
       }
     }
     return arr;

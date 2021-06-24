@@ -83,4 +83,22 @@ describe('convertNodeToRegExp', () => {
     expect(re.exec('/abc')).toEqual(expect.objectContaining(['/abc']));
     expect(re.exec('/ABC')).toEqual(expect.objectContaining(['/ABC']));
   });
+
+  test('merges native groups and vars', () => {
+    const re = convertNodeToRegExp(parsePattern('/:foo/((?<bar>\\w+))'));
+
+    expect(re.exec('/abc/123')?.groups).toEqual({foo: 'abc', bar: '123'});
+  });
+
+  test('vars overwrite native groups with the same name', () => {
+    const re = convertNodeToRegExp(parsePattern('/:foo/((?<foo>\\w+))'));
+
+    expect(re.exec('/abc/123')?.groups).toEqual({foo: 'abc'});
+  });
+
+  test('var can be named __proto__', () => {
+    const re = convertNodeToRegExp(parsePattern('/:__proto__'));
+
+    expect(re.exec('/abc')?.groups?.__proto__).toBe('abc');
+  });
 });

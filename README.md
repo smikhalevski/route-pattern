@@ -2,7 +2,7 @@
 
 The path pattern parser, that supports named variables, variable constraints, bash-like alternation, regular expressions, and wildcards.
 
-This package is tiny and has no dependencies. [Just 2 kB gzipped.](https://bundlephobia.com/package/@smikhalevski/route-pattern) 
+This package is tiny, [just 2.2 kB gzipped including dependencies.](https://bundlephobia.com/package/@smikhalevski/route-pattern) 
 
 ```sh
 npm install --save-prod @smikhalevski/route-pattern

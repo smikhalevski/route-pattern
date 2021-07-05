@@ -1,4 +1,4 @@
-# route-pattern [![Build Status](https://travis-ci.com/smikhalevski/route-pattern.svg?branch=master)](https://travis-ci.com/smikhalevski/route-pattern)
+# route-pattern [![build](https://github.com/smikhalevski/route-pattern/actions/workflows/master.yml/badge.svg?branch=master&event=push)](https://github.com/smikhalevski/route-pattern/actions/workflows/master.yml)
 
 The path pattern parser, that supports named variables, variable constraints, bash-like alternation, regular
 expressions, and wildcards.

@@ -22,7 +22,7 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
 
   visitNode(node, {
 
-    onPath(node, next) {
+    path(node, next) {
       const parent = node.parent;
       if (parent?.nodeType === NodeType.ALT && parent.children[0] !== node) {
         pattern += '|';
@@ -30,7 +30,7 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
       next();
     },
 
-    onPathSegment(node, next) {
+    pathSegment(node, next) {
       const parent = node.parent;
       if (parent?.nodeType === NodeType.PATH && (parent.children[0] !== node || parent.absolute)) {
         pattern += '/';
@@ -38,13 +38,13 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
       next();
     },
 
-    onAlt(node, next) {
+    alt(node, next) {
       pattern += '(?:';
       next();
       pattern += ')';
     },
 
-    onVariable(node, next) {
+    variable(node, next) {
       varMap[node.name] = groupIndex++;
       pattern += '(';
       if (node.constraint) {
@@ -55,16 +55,16 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
       pattern += ')';
     },
 
-    onWildcard(node) {
+    wildcard(node) {
       pattern += node.greedy ? '.*' : '[^/]*';
     },
 
-    onRegExp(node) {
+    regExp(node) {
       groupIndex += node.groupCount;
       pattern += '(?:' + node.pattern + ')';
     },
 
-    onText(node) {
+    text(node) {
       pattern += escapeRegExp(node.value);
     },
   });

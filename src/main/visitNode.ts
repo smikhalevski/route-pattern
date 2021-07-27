@@ -11,13 +11,13 @@ import {
 } from './ast-types';
 
 export interface INodeVisitor {
-  onPath?: (node: IPathNode, next: () => void) => void;
-  onPathSegment?: (node: IPathSegmentNode, next: () => void) => void;
-  onAlt?: (node: IAltNode, next: () => void) => void;
-  onVariable?: (node: IVariableNode, next: () => void) => void;
-  onWildcard?: (node: IWildcardNode) => void;
-  onRegExp?: (node: IRegExpNode) => void;
-  onText?: (node: ITextNode) => void;
+  path?(node: IPathNode, next: () => void): void;
+  pathSegment?(node: IPathSegmentNode, next: () => void): void;
+  alt?(node: IAltNode, next: () => void): void;
+  variable?(node: IVariableNode, next: () => void): void;
+  wildcard?(node: IWildcardNode): void;
+  regExp?(node: IRegExpNode): void;
+  text?(node: ITextNode): void;
 }
 
 /**
@@ -30,31 +30,31 @@ export function visitNode(node: Node | null | undefined, visitor: INodeVisitor):
   switch (node?.nodeType) {
 
     case NodeType.PATH:
-      visitor.onPath?.(node, () => visitChildren(node.children, visitor));
+      visitor.path?.(node, () => visitChildren(node.children, visitor));
       break;
 
     case NodeType.PATH_SEGMENT:
-      visitor.onPathSegment?.(node, () => visitChildren(node.children, visitor));
+      visitor.pathSegment?.(node, () => visitChildren(node.children, visitor));
       break;
 
     case NodeType.ALT:
-      visitor.onAlt?.(node, () => visitChildren(node.children, visitor));
+      visitor.alt?.(node, () => visitChildren(node.children, visitor));
       break;
 
     case NodeType.VARIABLE:
-      visitor.onVariable?.(node, () => visitNode(node.constraint, visitor));
+      visitor.variable?.(node, () => visitNode(node.constraint, visitor));
       break;
 
     case NodeType.WILDCARD:
-      visitor.onWildcard?.(node);
+      visitor.wildcard?.(node);
       break;
 
     case NodeType.REG_EXP:
-      visitor.onRegExp?.(node);
+      visitor.regExp?.(node);
       break;
 
     case NodeType.TEXT:
-      visitor.onText?.(node);
+      visitor.text?.(node);
       break;
   }
 }

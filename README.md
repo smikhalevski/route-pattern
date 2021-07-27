@@ -12,6 +12,8 @@ npm install --save-prod @smikhalevski/route-pattern
 
 # Usage
 
+⚠️ [API documentation is available here.](https://smikhalevski.github.io/route-pattern/)
+
 ```ts
 import {convertPatternToRegExp} from '@smikhalevski/route-pattern';
 

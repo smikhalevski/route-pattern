@@ -8,6 +8,7 @@ export const enum CharCode {
   '\t' = 9,
   '\n' = 10,
   '\r' = 13,
+  ' ' = 32,
   'A' = 65,
   'Z' = 90,
   'a' = 97,

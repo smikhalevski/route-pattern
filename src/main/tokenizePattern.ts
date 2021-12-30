@@ -2,7 +2,7 @@ import {allCharBy, char, CharCodeChecker, ResultCode, seq, Taker, text} from 'to
 import {CharCode} from './CharCode';
 
 const isSpaceChar: CharCodeChecker = (c) =>
-    c === 0x20
+    c === CharCode[' ']
     || c === CharCode['\t']
     || c === CharCode['\r']
     || c === CharCode['\n'];

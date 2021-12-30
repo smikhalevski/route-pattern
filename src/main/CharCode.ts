@@ -1,4 +1,10 @@
+// This enum isn't imported in compiled code.
 export const enum CharCode {
+
+  // An enum member cannot have a numeric name but not for const enums.
+  // @ts-ignore
+  '0' = 48, '9' = 57,
+
   '\t' = 9,
   '\n' = 10,
   '\r' = 13,
@@ -6,8 +12,6 @@ export const enum CharCode {
   'Z' = 90,
   'a' = 97,
   'z' = 122,
-  '00' = 48,
-  '09' = 57,
   '$' = 36,
   '_' = 95,
   '{' = 123,

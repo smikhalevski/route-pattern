@@ -10,7 +10,7 @@ const isSpaceChar: CharCodeChecker = (c) =>
 const isVariableNameChar: CharCodeChecker = (c) =>
     c >= CharCode['a'] && c <= CharCode['z']
     || c >= CharCode['A'] && c <= CharCode['Z']
-    || c >= CharCode['00'] && c <= CharCode['09']
+    || c >= CharCode['0'] && c <= CharCode['9']
     || c === CharCode['$']
     || c === CharCode['_'];
 

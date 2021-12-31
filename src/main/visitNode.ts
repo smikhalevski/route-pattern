@@ -59,7 +59,7 @@ export function visitNode(node: Node | null | undefined, visitor: INodeVisitor):
   }
 }
 
-function visitChildren(nodes: Array<Node>, visitor: INodeVisitor): void {
+function visitChildren(nodes: Node[], visitor: INodeVisitor): void {
   for (let i = 0; i < nodes.length; i++) {
     visitNode(nodes[i], visitor);
   }

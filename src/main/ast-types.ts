@@ -25,18 +25,18 @@ export interface INode {
 
 export interface IPathNode extends INode {
   nodeType: NodeType.PATH;
-  children: Array<Node>;
+  children: Node[];
   absolute: boolean;
 }
 
 export interface IPathSegmentNode extends INode {
   nodeType: NodeType.PATH_SEGMENT;
-  children: Array<Node>;
+  children: Node[];
 }
 
 export interface IAltNode extends INode {
   nodeType: NodeType.ALT;
-  children: Array<Node>;
+  children: Node[];
 }
 
 export interface IVariableNode extends INode {

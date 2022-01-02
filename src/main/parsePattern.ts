@@ -27,11 +27,11 @@ export function parsePattern(str: string): IPathNode {
 
     if (parentNode.nodeType === NodeType.VARIABLE) {
       if (parentNode.constraint) {
-        parentNode = parentNode.parent!;
+        parentNode = parentNode.parent || die();
       } else {
         parentNode.constraint = node;
         setEnd(node.end);
-        parentNode = parentNode.parent!;
+        parentNode = parentNode.parent || die();
         return;
       }
     }
@@ -75,7 +75,7 @@ export function parsePattern(str: string): IPathNode {
 
     variable(name, start, end) {
       if (parentNode.nodeType === NodeType.VARIABLE) {
-        parentNode = parentNode.parent!;
+        parentNode = parentNode.parent || die();
       }
       const node: Node = {
         nodeType: NodeType.VARIABLE,
@@ -119,21 +119,15 @@ export function parsePattern(str: string): IPathNode {
       altDepth--;
 
       while (parentNode.nodeType !== NodeType.ALT) {
-        if (!parentNode.parent) {
-          die('Unexpected alternation end', start);
-        }
-        parentNode = parentNode.parent;
+        parentNode = parentNode.parent || die('Unexpected alternation end', start);
       }
       setEnd(end);
-      parentNode = parentNode.parent!;
+      parentNode = parentNode.parent || die();
     },
 
     altSeparator(start, end) {
       while (parentNode.nodeType !== NodeType.ALT) {
-        if (!parentNode.parent) {
-          die('Unexpected alternation separator', start);
-        }
-        parentNode = parentNode.parent;
+        parentNode = parentNode.parent || die('Unexpected alternation separator', start);
       }
 
       const node: Node = {
@@ -183,7 +177,7 @@ export function parsePattern(str: string): IPathNode {
 
     pathSeparator(start, end) {
       while (parentNode.nodeType !== NodeType.PATH) {
-        parentNode = parentNode.parent!;
+        parentNode = parentNode.parent || die();
       }
 
       if (parentNode.children.length === 0) {

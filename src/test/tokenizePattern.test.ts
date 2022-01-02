@@ -57,6 +57,13 @@ describe('tokenizePattern', () => {
     expect(variableMock).toHaveBeenCalledWith('foo', 0, 4);
   });
 
+  test('does not parse variables that start with number', () => {
+    expect(tokenizePattern(':123foo', handler)).toBe(0);
+
+    expect(variableMock).not.toHaveBeenCalled();
+    expect(textMock).not.toHaveBeenCalled();
+  });
+
   test('parses variables with numbers', () => {
     expect(tokenizePattern(':foo123', handler)).toBe(7);
 

@@ -1,5 +1,7 @@
-import {allCharBy, char, CharCodeChecker, ResultCode, seq, Taker, text} from 'tokenizer-dsl';
+import {all, char, CharCodeChecker, ResultCode, seq, Taker, text} from 'tokenizer-dsl';
 import {CharCode} from './CharCode';
+
+const ERROR_CODE = -2;
 
 const isSpaceChar: CharCodeChecker = (c) =>
     c === CharCode[' ']
@@ -7,33 +9,47 @@ const isSpaceChar: CharCodeChecker = (c) =>
     || c === CharCode['\r']
     || c === CharCode['\n'];
 
-const isVariableNameChar: CharCodeChecker = (c) =>
+const isVariableNameStartChar: CharCodeChecker = (c) =>
     c >= CharCode['a'] && c <= CharCode['z']
     || c >= CharCode['A'] && c <= CharCode['Z']
-    || c >= CharCode['0'] && c <= CharCode['9']
     || c === CharCode['$']
     || c === CharCode['_'];
 
-const takeSpace = allCharBy(isSpaceChar);
+const isVariableNameChar: CharCodeChecker = (c) =>
+    isVariableNameStartChar(c)
+    || c >= CharCode['0'] && c <= CharCode['9'];
 
-const takeVariable = seq(char(CharCode[':']), allCharBy(isVariableNameChar, 1));
+const takeSpace = all(char(isSpaceChar));
 
-const takeAltStart = char(CharCode['{']);
+const takeVariableName = seq(char(isVariableNameStartChar), all(char(isVariableNameChar)));
 
-const takeAltEnd = char(CharCode['}']);
+const takeAltStart = text('{');
 
-const takeAltSeparator = char(CharCode[',']);
+const takeAltEnd = text('}');
+
+const takeAltSeparator = text(',');
 
 const takeGreedyWildcard = text('**');
 
-const takeWildcard = char(CharCode['*']);
+const takeWildcard = text('*');
 
-const takePathSeparator = char(CharCode['/']);
+const takePathSeparator = text('/');
+
+const takeVariable: Taker = (str, i) => {
+  if (str.charCodeAt(i) !== CharCode[':']) {
+    return ResultCode.NO_MATCH;
+  }
+
+  const j = takeVariableName(str, ++i);
+
+  return j > i ? j : ERROR_CODE;
+};
 
 let lastText = '';
 
 const takeQuotedText: Taker = (str, i) => {
   const quoteCode = str.charCodeAt(i);
+
   if (quoteCode !== CharCode['"'] && quoteCode !== CharCode['\'']) {
     return ResultCode.NO_MATCH;
   }
@@ -61,7 +77,7 @@ const takeQuotedText: Taker = (str, i) => {
 
   lastText = '';
 
-  return ResultCode.ERROR;
+  return ERROR_CODE;
 };
 
 let lastGroupCount = 0;
@@ -100,7 +116,7 @@ const takeRegExp: Taker = (str, i) => {
   }
 
   lastGroupCount = 0;
-  return ResultCode.ERROR;
+  return ERROR_CODE;
 };
 
 export interface IPatternTokenizeHandler {
@@ -209,6 +225,8 @@ export function tokenizePattern(str: string, handler: IPatternTokenizeHandler): 
       variable?.(str.substring(i + 1, j), i, j);
       i = j;
       continue;
+    } else if (j === ERROR_CODE) {
+      return i;
     }
 
     j = takeAltStart(str, i);
@@ -265,7 +283,7 @@ export function tokenizePattern(str: string, handler: IPatternTokenizeHandler): 
       text?.(lastText, i, j);
       i = j;
       continue;
-    } else if (j === ResultCode.ERROR) {
+    } else if (j === ERROR_CODE) {
       return i;
     }
 
@@ -275,7 +293,7 @@ export function tokenizePattern(str: string, handler: IPatternTokenizeHandler): 
       regExp?.(str.substring(i + 1, j - 1), lastGroupCount, i, j);
       i = j;
       continue;
-    } else if (j === ResultCode.ERROR) {
+    } else if (j === ERROR_CODE) {
       return i;
     }
 

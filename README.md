@@ -62,7 +62,7 @@ Alternation supports nesting, for example `/foo{ -bar, /(\\d+)/qux }` would matc
 
 ## Variables
 
-`:foo` declares a variable. Variable name should match `^[A-Za-z0-9$_]+$`.
+`:foo` declares a variable. Variable name must be a valid JS variable identifier `^[A-Za-z0-9$_][A-Za-z0-9$_]*$`.
 
 By default, variables match everything except the path separator.
 
@@ -79,3 +79,5 @@ Variables can be nested through an alternation: `/aaa/ :foo{ /bbb, /ccc/:bar }`.
 
 Variables are not treated as constraints for other variables. For example, `:foo:bar{abc}` would match `123abc` and
 groups would be `{foo: '123', bar: 'abc'}`.
+
+If you want to use `:` as a text in your pattern, then wrap in quotes `":"`.

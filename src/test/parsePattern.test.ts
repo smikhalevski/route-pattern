@@ -724,6 +724,10 @@ describe('parsePattern', () => {
     expect(parsePattern('{foo, bar}')).toEqual(rootNode);
   });
 
+  test('throws on invalid variable name', () => {
+    expect(() => parsePattern(':123foo')).toThrow();
+  });
+
   test('throws on unexpected alternation separator', () => {
     expect(() => parsePattern('foo, bar}')).toThrow();
   });

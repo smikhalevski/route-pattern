@@ -3,7 +3,13 @@ import {escapeRegExp} from './escapeRegExp';
 import {Node, NodeType} from './ast-types';
 
 export interface INodeToRegExpConverterOptions {
-  caseInsensitive?: boolean;
+
+  /**
+   * If `true` then the regexp is case sensitive.
+   *
+   * @default false
+   */
+  caseSensitive?: boolean;
 }
 
 /**
@@ -13,7 +19,7 @@ export interface INodeToRegExpConverterOptions {
  * @param options Other options.
  */
 export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterOptions = {}): RegExp {
-  const {caseInsensitive} = options;
+  const {caseSensitive} = options;
 
   let pattern = '';
   let groupIndex = 1;
@@ -69,7 +75,7 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
     },
   });
 
-  const re = RegExp('^' + pattern, caseInsensitive ? 'i' : '');
+  const re = RegExp('^' + pattern, caseSensitive ? '' : 'i');
 
   if (groupIndex === 1) {
     return re;

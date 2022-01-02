@@ -4,55 +4,55 @@ import {parsePattern} from '../main';
 describe('convertNodeToRegExp', () => {
 
   test('converts variable', () => {
-    expect(convertNodeToRegExp(parsePattern(':foo'))).toEqual(/^([^/]*)/);
+    expect(convertNodeToRegExp(parsePattern(':foo'))).toEqual(/^([^/]*)/i);
   });
 
   test('converts variable with text constraint', () => {
-    expect(convertNodeToRegExp(parsePattern(':foo"bar"'))).toEqual(/^(bar)/);
+    expect(convertNodeToRegExp(parsePattern(':foo"bar"'))).toEqual(/^(bar)/i);
   });
 
   test('converts variable with regexp constraint', () => {
-    expect(convertNodeToRegExp(parsePattern(':foo(\\d+)'))).toEqual(/^((?:\d+))/);
+    expect(convertNodeToRegExp(parsePattern(':foo(\\d+)'))).toEqual(/^((?:\d+))/i);
   });
 
   test('converts variable with alternation constraint', () => {
-    expect(convertNodeToRegExp(parsePattern(':foo { foo, bar }'))).toEqual(/^((?:foo|bar))/);
+    expect(convertNodeToRegExp(parsePattern(':foo { foo, bar }'))).toEqual(/^((?:foo|bar))/i);
   });
 
   test('converts variables with respect to regexp group count', () => {
-    expect(convertNodeToRegExp(parsePattern('(([abc]))/:foo(\\d+)'))).toEqual(/^(?:([abc]))\/((?:\d+))/);
+    expect(convertNodeToRegExp(parsePattern('(([abc]))/:foo(\\d+)'))).toEqual(/^(?:([abc]))\/((?:\d+))/i);
   });
 
   test('converts text', () => {
-    expect(convertNodeToRegExp(parsePattern('foo'))).toEqual(/^foo/);
+    expect(convertNodeToRegExp(parsePattern('foo'))).toEqual(/^foo/i);
   });
 
   test('converts text with regexp control chars', () => {
-    expect(convertNodeToRegExp(parsePattern('$fo[o]'))).toEqual(/^\$fo\[o\]/);
+    expect(convertNodeToRegExp(parsePattern('$fo[o]'))).toEqual(/^\$fo\[o\]/i);
   });
 
   test('converts wildcards', () => {
-    expect(convertNodeToRegExp(parsePattern('*'))).toEqual(/^[^/]*/);
+    expect(convertNodeToRegExp(parsePattern('*'))).toEqual(/^[^/]*/i);
   });
 
   test('converts greedy wildcards', () => {
-    expect(convertNodeToRegExp(parsePattern('**'))).toEqual(/^.*/);
+    expect(convertNodeToRegExp(parsePattern('**'))).toEqual(/^.*/i);
   });
 
   test('converts alternation', () => {
-    expect(convertNodeToRegExp(parsePattern('{foo,bar}'))).toEqual(/^(?:foo|bar)/);
+    expect(convertNodeToRegExp(parsePattern('{foo,bar}'))).toEqual(/^(?:foo|bar)/i);
   });
 
   test('converts alternation with leading path separator', () => {
-    expect(convertNodeToRegExp(parsePattern('/{foo,bar}'))).toEqual(/^\/(?:foo|bar)/);
+    expect(convertNodeToRegExp(parsePattern('/{foo,bar}'))).toEqual(/^\/(?:foo|bar)/i);
   });
 
   test('converts alternation with path separator inside branch', () => {
-    expect(convertNodeToRegExp(parsePattern('{ /foo, bar }'))).toEqual(/^(?:\/foo|bar)/);
+    expect(convertNodeToRegExp(parsePattern('{ /foo, bar }'))).toEqual(/^(?:\/foo|bar)/i);
   });
 
   test('converts complex pattern', () => {
-    expect(convertNodeToRegExp(parsePattern('/aaa{ :foo{ /bbb, :bar(ccc|ddd) }/**}'))).toEqual(/^\/aaa(?:((?:\/bbb|((?:ccc|ddd))))\/.*)/);
+    expect(convertNodeToRegExp(parsePattern('/aaa{ :foo{ /bbb, :bar(ccc|ddd) }/**}'))).toEqual(/^\/aaa(?:((?:\/bbb|((?:ccc|ddd))))\/.*)/i);
   });
 
   test('adds exec to support groups', () => {
@@ -70,17 +70,18 @@ describe('convertNodeToRegExp', () => {
     expect(arr?.groups?.foo).toEqual('abc');
   });
 
-  test('creates case-sensitive regexp', () => {
+  test('creates case-insensitive regexp by default', () => {
     const re = convertNodeToRegExp(parsePattern('/ABC'));
 
-    expect(re.exec('/abc')).toBeNull();
+    expect(re.ignoreCase).toBe(true);
+    expect(re.exec('/abc')).toEqual(expect.objectContaining(['/abc']));
     expect(re.exec('/ABC')).toEqual(expect.objectContaining(['/ABC']));
   });
 
-  test('creates case-insensitive regexp', () => {
-    const re = convertNodeToRegExp(parsePattern('/ABC'), {caseInsensitive: true});
+  test('creates case-sensitive regexp', () => {
+    const re = convertNodeToRegExp(parsePattern('/ABC'), {caseSensitive: true});
 
-    expect(re.exec('/abc')).toEqual(expect.objectContaining(['/abc']));
+    expect(re.exec('/abc')).toBeNull();
     expect(re.exec('/ABC')).toEqual(expect.objectContaining(['/ABC']));
   });
 

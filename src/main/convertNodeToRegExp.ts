@@ -86,10 +86,10 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
   re.exec = (str) => {
     const arr = reExec.call(re, str);
     if (arr != null) {
-      arr.groups ||= Object.create(null) as Record<string, string>;
+      const groups = arr.groups ||= Object.create(null);
 
       for (const key in varMap) {
-        arr.groups[key] = arr[varMap[key]];
+        groups[key] = arr[varMap[key]];
       }
     }
     return arr;

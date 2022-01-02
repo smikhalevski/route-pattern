@@ -1,255 +1,255 @@
-import {IPatternTokenizerOptions, tokenizePattern} from '../main/tokenizePattern';
+import {IPatternTokenizeHandler, tokenizePattern} from '../main/tokenizePattern';
 
 describe('tokenizePattern', () => {
 
-  const onVariableMock = jest.fn();
-  const onAltStartMock = jest.fn();
-  const onAltEndMock = jest.fn();
-  const onAltSeparatorMock = jest.fn();
-  const onWildcardMock = jest.fn();
-  const onRegExpMock = jest.fn();
-  const onTextMock = jest.fn();
-  const onPathSeparatorMock = jest.fn();
+  const variableMock = jest.fn();
+  const altStartMock = jest.fn();
+  const altEndMock = jest.fn();
+  const altSeparatorMock = jest.fn();
+  const wildcardMock = jest.fn();
+  const regExpMock = jest.fn();
+  const textMock = jest.fn();
+  const pathSeparatorMock = jest.fn();
 
-  const options: IPatternTokenizerOptions = {
-    onVariable: onVariableMock,
-    onAltStart: onAltStartMock,
-    onAltEnd: onAltEndMock,
-    onAltSeparator: onAltSeparatorMock,
-    onWildcard: onWildcardMock,
-    onRegExp: onRegExpMock,
-    onText: onTextMock,
-    onPathSeparator: onPathSeparatorMock,
+  const handler: IPatternTokenizeHandler = {
+    variable: variableMock,
+    altStart: altStartMock,
+    altEnd: altEndMock,
+    altSeparator: altSeparatorMock,
+    wildcard: wildcardMock,
+    regExp: regExpMock,
+    text: textMock,
+    pathSeparator: pathSeparatorMock,
   };
 
   beforeEach(() => {
-    onVariableMock.mockReset();
-    onAltStartMock.mockReset();
-    onAltEndMock.mockReset();
-    onAltSeparatorMock.mockReset();
-    onWildcardMock.mockReset();
-    onRegExpMock.mockReset();
-    onTextMock.mockReset();
-    onPathSeparatorMock.mockReset();
+    variableMock.mockReset();
+    altStartMock.mockReset();
+    altEndMock.mockReset();
+    altSeparatorMock.mockReset();
+    wildcardMock.mockReset();
+    regExpMock.mockReset();
+    textMock.mockReset();
+    pathSeparatorMock.mockReset();
   });
 
   test('does not call callbacks on blank string', () => {
-    expect(tokenizePattern('', options)).toBe(0);
-    expect(tokenizePattern('  ', options)).toBe(2);
-    expect(tokenizePattern('\t', options)).toBe(1);
-    expect(tokenizePattern('\n', options)).toBe(1);
-    expect(tokenizePattern('\r', options)).toBe(1);
+    expect(tokenizePattern('', handler)).toBe(0);
+    expect(tokenizePattern('  ', handler)).toBe(2);
+    expect(tokenizePattern('\t', handler)).toBe(1);
+    expect(tokenizePattern('\n', handler)).toBe(1);
+    expect(tokenizePattern('\r', handler)).toBe(1);
 
-    expect(onVariableMock).not.toHaveBeenCalled();
-    expect(onAltStartMock).not.toHaveBeenCalled();
-    expect(onAltEndMock).not.toHaveBeenCalled();
-    expect(onAltSeparatorMock).not.toHaveBeenCalled();
-    expect(onWildcardMock).not.toHaveBeenCalled();
-    expect(onRegExpMock).not.toHaveBeenCalled();
-    expect(onTextMock).not.toHaveBeenCalled();
-    expect(onPathSeparatorMock).not.toHaveBeenCalled();
+    expect(variableMock).not.toHaveBeenCalled();
+    expect(altStartMock).not.toHaveBeenCalled();
+    expect(altEndMock).not.toHaveBeenCalled();
+    expect(altSeparatorMock).not.toHaveBeenCalled();
+    expect(wildcardMock).not.toHaveBeenCalled();
+    expect(regExpMock).not.toHaveBeenCalled();
+    expect(textMock).not.toHaveBeenCalled();
+    expect(pathSeparatorMock).not.toHaveBeenCalled();
   });
 
   test('parses variables', () => {
-    expect(tokenizePattern(':foo', options)).toBe(4);
+    expect(tokenizePattern(':foo', handler)).toBe(4);
 
-    expect(onVariableMock).toHaveBeenCalledTimes(1);
-    expect(onVariableMock).toHaveBeenCalledWith('foo', 0, 4);
+    expect(variableMock).toHaveBeenCalledTimes(1);
+    expect(variableMock).toHaveBeenCalledWith('foo', 0, 4);
   });
 
   test('parses variables with numbers', () => {
-    expect(tokenizePattern(':foo123', options)).toBe(7);
+    expect(tokenizePattern(':foo123', handler)).toBe(7);
 
-    expect(onVariableMock).toHaveBeenCalledTimes(1);
-    expect(onVariableMock).toHaveBeenCalledWith('foo123', 0, 7);
+    expect(variableMock).toHaveBeenCalledTimes(1);
+    expect(variableMock).toHaveBeenCalledWith('foo123', 0, 7);
   });
 
   test('parses alternation start', () => {
-    expect(tokenizePattern('{', options)).toBe(1);
+    expect(tokenizePattern('{', handler)).toBe(1);
 
-    expect(onAltStartMock).toHaveBeenCalledTimes(1);
-    expect(onAltStartMock).toHaveBeenCalledWith(0, 1);
+    expect(altStartMock).toHaveBeenCalledTimes(1);
+    expect(altStartMock).toHaveBeenCalledWith(0, 1);
   });
 
   test('parses alternation end', () => {
-    expect(tokenizePattern('}', options)).toBe(1);
+    expect(tokenizePattern('}', handler)).toBe(1);
 
-    expect(onAltEndMock).toHaveBeenCalledTimes(1);
-    expect(onAltEndMock).toHaveBeenCalledWith(0, 1);
+    expect(altEndMock).toHaveBeenCalledTimes(1);
+    expect(altEndMock).toHaveBeenCalledWith(0, 1);
   });
 
   test('parses alternation separator', () => {
-    expect(tokenizePattern(',', options)).toBe(1);
+    expect(tokenizePattern(',', handler)).toBe(1);
 
-    expect(onAltSeparatorMock).toHaveBeenCalledTimes(1);
-    expect(onAltSeparatorMock).toHaveBeenCalledWith(0, 1);
+    expect(altSeparatorMock).toHaveBeenCalledTimes(1);
+    expect(altSeparatorMock).toHaveBeenCalledWith(0, 1);
   });
 
   test('parses greedy wildcard', () => {
-    expect(tokenizePattern('**', options)).toBe(2);
+    expect(tokenizePattern('**', handler)).toBe(2);
 
-    expect(onWildcardMock).toHaveBeenCalledTimes(1);
-    expect(onWildcardMock).toHaveBeenCalledWith(true, 0, 2);
+    expect(wildcardMock).toHaveBeenCalledTimes(1);
+    expect(wildcardMock).toHaveBeenCalledWith(true, 0, 2);
   });
 
   test('parses wildcard', () => {
-    expect(tokenizePattern('*', options)).toBe(1);
+    expect(tokenizePattern('*', handler)).toBe(1);
 
-    expect(onWildcardMock).toHaveBeenCalledTimes(1);
-    expect(onWildcardMock).toHaveBeenCalledWith(false, 0, 1);
+    expect(wildcardMock).toHaveBeenCalledTimes(1);
+    expect(wildcardMock).toHaveBeenCalledWith(false, 0, 1);
   });
 
   test('parses empty reg exp', () => {
-    expect(tokenizePattern('()', options)).toBe(2);
+    expect(tokenizePattern('()', handler)).toBe(2);
 
-    expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('', 0, 0, 2);
+    expect(regExpMock).toHaveBeenCalledTimes(1);
+    expect(regExpMock).toHaveBeenCalledWith('', 0, 0, 2);
   });
 
   test('parses reg exp with groups', () => {
-    expect(tokenizePattern('((a)((b)c))', options)).toBe(11);
+    expect(tokenizePattern('((a)((b)c))', handler)).toBe(11);
 
-    expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('(a)((b)c)', 3, 0, 11);
+    expect(regExpMock).toHaveBeenCalledTimes(1);
+    expect(regExpMock).toHaveBeenCalledWith('(a)((b)c)', 3, 0, 11);
   });
 
   test('parses reg exp with escaped open brackets', () => {
-    expect(tokenizePattern('(\\()', options)).toBe(4);
+    expect(tokenizePattern('(\\()', handler)).toBe(4);
 
-    expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('\\(', 0, 0, 4);
+    expect(regExpMock).toHaveBeenCalledTimes(1);
+    expect(regExpMock).toHaveBeenCalledWith('\\(', 0, 0, 4);
   });
 
   test('parses reg exp with escaped close brackets', () => {
-    expect(tokenizePattern('(\\))', options)).toBe(4);
+    expect(tokenizePattern('(\\))', handler)).toBe(4);
 
-    expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('\\)', 0, 0, 4);
+    expect(regExpMock).toHaveBeenCalledTimes(1);
+    expect(regExpMock).toHaveBeenCalledWith('\\)', 0, 0, 4);
   });
 
   test('stops parsing if reg exp is not closed', () => {
-    expect(tokenizePattern('(foo', options)).toBe(0);
+    expect(tokenizePattern('(foo', handler)).toBe(0);
 
-    expect(onRegExpMock).not.toHaveBeenCalled();
+    expect(regExpMock).not.toHaveBeenCalled();
   });
 
   test('parses text', () => {
-    expect(tokenizePattern('\'foo\'', options)).toBe(5);
+    expect(tokenizePattern('\'foo\'', handler)).toBe(5);
 
-    expect(onTextMock).toHaveBeenCalledTimes(1);
-    expect(onTextMock).toHaveBeenCalledWith('foo', 0, 5);
+    expect(textMock).toHaveBeenCalledTimes(1);
+    expect(textMock).toHaveBeenCalledWith('foo', 0, 5);
   });
 
   test('parses text in quotes', () => {
-    expect(tokenizePattern('"foo"', options)).toBe(5);
+    expect(tokenizePattern('"foo"', handler)).toBe(5);
 
-    expect(onTextMock).toHaveBeenCalledTimes(1);
-    expect(onTextMock).toHaveBeenCalledWith('foo', 0, 5);
+    expect(textMock).toHaveBeenCalledTimes(1);
+    expect(textMock).toHaveBeenCalledWith('foo', 0, 5);
   });
 
   test('respects escape char in text', () => {
-    expect(tokenizePattern('"fo\\"o"', options)).toBe(7);
+    expect(tokenizePattern('"fo\\"o"', handler)).toBe(7);
 
-    expect(onTextMock).toHaveBeenCalledTimes(1);
-    expect(onTextMock).toHaveBeenCalledWith('fo"o', 0, 7);
+    expect(textMock).toHaveBeenCalledTimes(1);
+    expect(textMock).toHaveBeenCalledWith('fo"o', 0, 7);
   });
 
   test('parses unquoted text', () => {
-    expect(tokenizePattern('foo', options)).toBe(3);
+    expect(tokenizePattern('foo', handler)).toBe(3);
 
-    expect(onTextMock).toHaveBeenCalledTimes(1);
-    expect(onTextMock).toHaveBeenCalledWith('foo', 0, 3);
+    expect(textMock).toHaveBeenCalledTimes(1);
+    expect(textMock).toHaveBeenCalledWith('foo', 0, 3);
   });
 
   test('ignores spaces around unquoted text', () => {
-    expect(tokenizePattern('  \nfoo\t', options)).toBe(7);
+    expect(tokenizePattern('  \nfoo\t', handler)).toBe(7);
 
-    expect(onTextMock).toHaveBeenCalledTimes(1);
-    expect(onTextMock).toHaveBeenCalledWith('foo', 3, 6);
+    expect(textMock).toHaveBeenCalledTimes(1);
+    expect(textMock).toHaveBeenCalledWith('foo', 3, 6);
   });
 
   test('ignores spaces between unquoted text', () => {
-    expect(tokenizePattern('  \nfoo  bar\t', options)).toBe(12);
+    expect(tokenizePattern('  \nfoo  bar\t', handler)).toBe(12);
 
-    expect(onTextMock).toHaveBeenCalledTimes(2);
-    expect(onTextMock).toHaveBeenNthCalledWith(1, 'foo', 3, 6);
-    expect(onTextMock).toHaveBeenNthCalledWith(2, 'bar', 8, 11);
+    expect(textMock).toHaveBeenCalledTimes(2);
+    expect(textMock).toHaveBeenNthCalledWith(1, 'foo', 3, 6);
+    expect(textMock).toHaveBeenNthCalledWith(2, 'bar', 8, 11);
   });
 
   test('stops parsing if text closing quote is missing', () => {
-    expect(tokenizePattern('"foo', options)).toBe(0);
+    expect(tokenizePattern('"foo', handler)).toBe(0);
 
-    expect(onTextMock).not.toHaveBeenCalled();
+    expect(textMock).not.toHaveBeenCalled();
   });
 
   test('parses path separators', () => {
-    expect(tokenizePattern('//', options)).toBe(2);
+    expect(tokenizePattern('//', handler)).toBe(2);
 
-    expect(onPathSeparatorMock).toHaveBeenCalledTimes(2);
-    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(1, 0, 1);
-    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(2, 1, 2);
+    expect(pathSeparatorMock).toHaveBeenCalledTimes(2);
+    expect(pathSeparatorMock).toHaveBeenNthCalledWith(1, 0, 1);
+    expect(pathSeparatorMock).toHaveBeenNthCalledWith(2, 1, 2);
   });
 
   test('parses complex expressions', () => {
-    expect(tokenizePattern('/aaa/{ :foo (\\d+) , :baz "qqq" }/**', options)).toBe(35);
+    expect(tokenizePattern('/aaa/{ :foo (\\d+) , :baz "qqq" }/**', handler)).toBe(35);
 
-    expect(onPathSeparatorMock).toHaveBeenCalledTimes(3);
-    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(1, 0, 1);
-    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(2, 4, 5);
-    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(3, 32, 33);
+    expect(pathSeparatorMock).toHaveBeenCalledTimes(3);
+    expect(pathSeparatorMock).toHaveBeenNthCalledWith(1, 0, 1);
+    expect(pathSeparatorMock).toHaveBeenNthCalledWith(2, 4, 5);
+    expect(pathSeparatorMock).toHaveBeenNthCalledWith(3, 32, 33);
 
-    expect(onTextMock).toHaveBeenCalledTimes(2);
-    expect(onTextMock).toHaveBeenNthCalledWith(1, 'aaa', 1, 4);
-    expect(onTextMock).toHaveBeenNthCalledWith(2, 'qqq', 25, 30);
+    expect(textMock).toHaveBeenCalledTimes(2);
+    expect(textMock).toHaveBeenNthCalledWith(1, 'aaa', 1, 4);
+    expect(textMock).toHaveBeenNthCalledWith(2, 'qqq', 25, 30);
 
-    expect(onVariableMock).toHaveBeenCalledTimes(2);
-    expect(onVariableMock).toHaveBeenNthCalledWith(1, 'foo', 7, 11);
-    expect(onVariableMock).toHaveBeenNthCalledWith(2, 'baz', 20, 24);
+    expect(variableMock).toHaveBeenCalledTimes(2);
+    expect(variableMock).toHaveBeenNthCalledWith(1, 'foo', 7, 11);
+    expect(variableMock).toHaveBeenNthCalledWith(2, 'baz', 20, 24);
 
-    expect(onRegExpMock).toHaveBeenCalledTimes(1);
-    expect(onRegExpMock).toHaveBeenCalledWith('\\d+', 0, 12, 17);
+    expect(regExpMock).toHaveBeenCalledTimes(1);
+    expect(regExpMock).toHaveBeenCalledWith('\\d+', 0, 12, 17);
 
-    expect(onAltStartMock).toHaveBeenCalledTimes(1);
-    expect(onAltStartMock).toHaveBeenCalledWith(5, 6);
+    expect(altStartMock).toHaveBeenCalledTimes(1);
+    expect(altStartMock).toHaveBeenCalledWith(5, 6);
 
-    expect(onAltEndMock).toHaveBeenCalledTimes(1);
-    expect(onAltEndMock).toHaveBeenCalledWith(31, 32);
+    expect(altEndMock).toHaveBeenCalledTimes(1);
+    expect(altEndMock).toHaveBeenCalledWith(31, 32);
 
-    expect(onAltSeparatorMock).toHaveBeenCalledTimes(1);
-    expect(onAltSeparatorMock).toHaveBeenCalledWith(18, 19);
+    expect(altSeparatorMock).toHaveBeenCalledTimes(1);
+    expect(altSeparatorMock).toHaveBeenCalledWith(18, 19);
 
-    expect(onWildcardMock).toHaveBeenCalledTimes(1);
-    expect(onWildcardMock).toHaveBeenCalledWith(true, 33, 35);
+    expect(wildcardMock).toHaveBeenCalledTimes(1);
+    expect(wildcardMock).toHaveBeenCalledWith(true, 33, 35);
   });
 
   test('stops stops parsing complex expressions', () => {
-    expect(tokenizePattern('/aaa/{ :foo (\\d+', options)).toBe(12);
+    expect(tokenizePattern('/aaa/{ :foo (\\d+', handler)).toBe(12);
 
-    expect(onPathSeparatorMock).toHaveBeenCalledTimes(2);
-    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(1, 0, 1);
-    expect(onPathSeparatorMock).toHaveBeenNthCalledWith(2, 4, 5);
+    expect(pathSeparatorMock).toHaveBeenCalledTimes(2);
+    expect(pathSeparatorMock).toHaveBeenNthCalledWith(1, 0, 1);
+    expect(pathSeparatorMock).toHaveBeenNthCalledWith(2, 4, 5);
 
-    expect(onAltStartMock).toHaveBeenCalledTimes(1);
-    expect(onAltStartMock).toHaveBeenCalledWith(5, 6);
+    expect(altStartMock).toHaveBeenCalledTimes(1);
+    expect(altStartMock).toHaveBeenCalledWith(5, 6);
 
-    expect(onVariableMock).toHaveBeenCalledTimes(1);
-    expect(onVariableMock).toHaveBeenNthCalledWith(1, 'foo', 7, 11);
+    expect(variableMock).toHaveBeenCalledTimes(1);
+    expect(variableMock).toHaveBeenNthCalledWith(1, 'foo', 7, 11);
 
-    expect(onRegExpMock).not.toHaveBeenCalled();
+    expect(regExpMock).not.toHaveBeenCalled();
   });
 
   test('parses weird chars as text', () => {
-    expect(tokenizePattern('!@#$%^&', options)).toBe(7);
+    expect(tokenizePattern('!@#$%^&', handler)).toBe(7);
 
-    expect(onTextMock).toHaveBeenCalledTimes(1);
-    expect(onTextMock).toHaveBeenNthCalledWith(1, '!@#$%^&', 0, 7);
+    expect(textMock).toHaveBeenCalledTimes(1);
+    expect(textMock).toHaveBeenNthCalledWith(1, '!@#$%^&', 0, 7);
   });
 
   test('parses newline as a space char', () => {
-    expect(tokenizePattern('foo\nbar', options)).toBe(7);
+    expect(tokenizePattern('foo\nbar', handler)).toBe(7);
 
-    expect(onTextMock).toHaveBeenCalledTimes(2);
-    expect(onTextMock).toHaveBeenNthCalledWith(1, 'foo', 0, 3);
-    expect(onTextMock).toHaveBeenNthCalledWith(2, 'bar', 4, 7);
+    expect(textMock).toHaveBeenCalledTimes(2);
+    expect(textMock).toHaveBeenNthCalledWith(1, 'foo', 0, 3);
+    expect(textMock).toHaveBeenNthCalledWith(2, 'bar', 4, 7);
   });
 });

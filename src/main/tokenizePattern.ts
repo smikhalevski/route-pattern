@@ -103,39 +103,76 @@ const takeRegExp: Taker = (str, i) => {
   return ResultCode.ERROR;
 };
 
-export type DataCallback = (data: string, start: number, end: number) => void;
+export interface IPatternTokenizeHandler {
 
-export type OffsetCallback = (start: number, end: number) => void;
+  /**
+   * Triggered when a variable declaration was read.
+   */
+  variable?(name: string, start: number, end: number): void;
 
-export interface IPatternTokenizerOptions {
-  onVariable?: DataCallback;
-  onAltStart?: OffsetCallback;
-  onAltEnd?: OffsetCallback;
-  onAltSeparator?: OffsetCallback;
-  onWildcard?: (greedy: boolean, start: number, end: number) => void;
-  onRegExp?: (pattern: string, groupCount: number, start: number, end: number) => void;
-  onText?: DataCallback;
-  onPathSeparator?: OffsetCallback;
+  /**
+   * Triggered when an alternation opening bracket was read.
+   */
+  altStart?(start: number, end: number): void;
+
+  /**
+   * Triggered when an alternation closing bracket was read.
+   */
+  altEnd?(start: number, end: number): void;
+
+  /**
+   * Triggered when an alternation separator was read.
+   */
+  altSeparator?(start: number, end: number): void;
+
+  /**
+   * Triggered when a wildcard was read.
+   *
+   * @param greedy `true` if wildcard captures path separators.
+   * @param start The token start offset.
+   * @param end The token end offset.
+   */
+  wildcard?(greedy: boolean, start: number, end: number): void;
+
+  /**
+   * Triggered when a regular expression was read.
+   *
+   * @param pattern The pattern that can be compiled as a `RegExp`.
+   * @param groupCount The number of groups captured by the pattern.
+   * @param start The token start offset.
+   * @param end The token end offset.
+   */
+  regExp?(pattern: string, groupCount: number, start: number, end: number): void;
+
+  /**
+   * Triggered when a plain text fragment was read.
+   */
+  text?(data: string, start: number, end: number): void;
+
+  /**
+   * Triggered when a path separator was read.
+   */
+  pathSeparator?(start: number, end: number): void;
 }
 
 /**
  * Traverses pattern and invokes callbacks when particular token in met.
  *
  * @param str The pattern to tokenize.
- * @param options Callbacks to invoke during tokenization.
+ * @param handler Callbacks to invoke during tokenization.
  * @returns The number of chars that were successfully parsed in `str`.
  */
-export function tokenizePattern(str: string, options: IPatternTokenizerOptions): number {
+export function tokenizePattern(str: string, handler: IPatternTokenizeHandler): number {
   const {
-    onVariable,
-    onAltStart,
-    onAltEnd,
-    onAltSeparator,
-    onWildcard,
-    onRegExp,
-    onText,
-    onPathSeparator,
-  } = options;
+    variable,
+    altStart,
+    altEnd,
+    altSeparator,
+    wildcard,
+    regExp,
+    text,
+    pathSeparator,
+  } = handler;
 
   const charCount = str.length;
 
@@ -144,7 +181,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
 
   const emitText = () => {
     if (textStart !== -1) {
-      onText?.(str.substring(textStart, textEnd), textStart, textEnd);
+      text?.(str.substring(textStart, textEnd), textStart, textEnd);
       textStart = -1;
     }
   };
@@ -169,7 +206,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeVariable(str, i);
     if (j >= 0) {
       emitText();
-      onVariable?.(str.substring(i + 1, j), i, j);
+      variable?.(str.substring(i + 1, j), i, j);
       i = j;
       continue;
     }
@@ -177,7 +214,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeAltStart(str, i);
     if (j >= 0) {
       emitText();
-      onAltStart?.(i, j);
+      altStart?.(i, j);
       i = j;
       continue;
     }
@@ -185,7 +222,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeAltEnd(str, i);
     if (j >= 0) {
       emitText();
-      onAltEnd?.(i, j);
+      altEnd?.(i, j);
       i = j;
       continue;
     }
@@ -193,7 +230,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeAltSeparator(str, i);
     if (j >= 0) {
       emitText();
-      onAltSeparator?.(i, j);
+      altSeparator?.(i, j);
       i = j;
       continue;
     }
@@ -201,7 +238,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeGreedyWildcard(str, i);
     if (j >= 0) {
       emitText();
-      onWildcard?.(true, i, j);
+      wildcard?.(true, i, j);
       i = j;
       continue;
     }
@@ -209,7 +246,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeWildcard(str, i);
     if (j >= 0) {
       emitText();
-      onWildcard?.(false, i, j);
+      wildcard?.(false, i, j);
       i = j;
       continue;
     }
@@ -217,7 +254,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takePathSeparator(str, i);
     if (j >= 0) {
       emitText();
-      onPathSeparator?.(i, j);
+      pathSeparator?.(i, j);
       i = j;
       continue;
     }
@@ -225,7 +262,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeQuotedText(str, i);
     if (j >= 0) {
       emitText();
-      onText?.(lastText, i, j);
+      text?.(lastText, i, j);
       i = j;
       continue;
     } else if (j === ResultCode.ERROR) {
@@ -235,7 +272,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeRegExp(str, i);
     if (j >= 0) {
       emitText();
-      onRegExp?.(str.substring(i + 1, j - 1), lastGroupCount, i, j);
+      regExp?.(str.substring(i + 1, j - 1), lastGroupCount, i, j);
       i = j;
       continue;
     } else if (j === ResultCode.ERROR) {

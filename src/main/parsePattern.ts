@@ -1,5 +1,6 @@
 import {IPathNode, Node, NodeType} from './ast-types';
 import {tokenizePattern} from './tokenizePattern';
+import {die} from './misc';
 
 /**
  * Converts pattern to an AST.
@@ -61,7 +62,7 @@ export function parsePattern(str: string): IPathNode {
       return;
     }
 
-    throw new SyntaxError(`Unexpected syntax at ${node.start}`);
+    die('Unexpected syntax', node.start);
   };
 
   const setEnd = (end: number): void => {
@@ -119,7 +120,7 @@ export function parsePattern(str: string): IPathNode {
 
       while (parent.nodeType !== NodeType.ALT) {
         if (!parent.parent) {
-          throw new SyntaxError(`Unexpected alternation end at ${start}`);
+          die('Unexpected alternation end', start);
         }
         parent = parent.parent;
       }
@@ -130,7 +131,7 @@ export function parsePattern(str: string): IPathNode {
     onAltSeparator(start, end) {
       while (parent.nodeType !== NodeType.ALT) {
         if (!parent.parent) {
-          throw new SyntaxError(`Unexpected alternation separator at ${start}`);
+          die('Unexpected alternation separator', start);
         }
         parent = parent.parent;
       }
@@ -205,10 +206,10 @@ export function parsePattern(str: string): IPathNode {
   });
 
   if (length !== str.length) {
-    throw new SyntaxError(`Unexpected syntax after ${length}`);
+    die('Unexpected syntax', length);
   }
   if (altDepth !== 0) {
-    throw new SyntaxError(`Unterminated alternation at ${length}`);
+    die('Unterminated alternation', length);
   }
 
   return root;

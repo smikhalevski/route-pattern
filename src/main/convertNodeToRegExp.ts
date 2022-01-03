@@ -10,6 +10,34 @@ export interface INodeToRegExpConverterOptions {
    * @default false
    */
   caseSensitive?: boolean;
+
+  /**
+   * The pattern that matches the path separator.
+   *
+   * @default "/"
+   */
+  pathSeparatorPattern?: string;
+
+  /**
+   * The pattern that matches a non-greedy wildcard.
+   *
+   * @default "[^/]*"
+   */
+  wildcardPattern?: string;
+
+  /**
+   * The pattern that matches a greedy wildcard.
+   *
+   * @default ".*"
+   */
+  greedyWildcardPattern?: string;
+
+  /**
+   * The pattern that matches a value of an unconstrained variable.
+   *
+   * @default "[^/]*"
+   */
+  unconstrainedVarPattern?: string;
 }
 
 /**
@@ -19,12 +47,18 @@ export interface INodeToRegExpConverterOptions {
  * @param options Other options.
  */
 export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterOptions = {}): RegExp {
-  const {caseSensitive} = options;
+  const {
+    caseSensitive,
+    pathSeparatorPattern = '/',
+    wildcardPattern = '[^/]*',
+    greedyWildcardPattern = '.*',
+    unconstrainedVarPattern = '[^/]*',
+  } = options;
 
   let pattern = '';
   let groupIndex = 1;
 
-  const varMap: Record<string, number> = Object.create(null);
+  const varEntries: [string, number][] = [];
 
   visitNode(node, {
 
@@ -39,7 +73,7 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
     pathSegment(node, next) {
       const parent = node.parent;
       if (parent?.nodeType === NodeType.PATH && (parent.children[0] !== node || parent.absolute)) {
-        pattern += '/';
+        pattern += pathSeparatorPattern;
       }
       next();
     },
@@ -51,18 +85,19 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
     },
 
     variable(node, next) {
-      varMap[node.name] = groupIndex++;
+      varEntries.push([node.name, groupIndex++]);
+
       pattern += '(';
       if (node.constraint) {
         next();
       } else {
-        pattern += '[^/]*';
+        pattern += unconstrainedVarPattern;
       }
       pattern += ')';
     },
 
     wildcard(node) {
-      pattern += node.greedy ? '.*' : '[^/]*';
+      pattern += node.greedy ? greedyWildcardPattern : wildcardPattern;
     },
 
     regExp(node) {
@@ -85,11 +120,12 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
 
   re.exec = (str) => {
     const arr = reExec.call(re, str);
+
     if (arr != null) {
       const groups = arr.groups ||= Object.create(null);
 
-      for (const key in varMap) {
-        groups[key] = arr[varMap[key]];
+      for (const [name, groupIndex] of varEntries) {
+        groups[name] ||= arr[groupIndex];
       }
     }
     return arr;

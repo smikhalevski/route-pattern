@@ -395,6 +395,63 @@ describe('parsePattern', () => {
     expect(parsePattern(':foo')).toEqual(rootNode);
   });
 
+  test('parses multiple variables with same names', () => {
+    let node1: Node;
+    let node11: Node;
+    let node2: Node;
+    let node21: Node;
+
+    const rootNode: Node = {
+      nodeType: NodeType.PATH,
+      absolute: false,
+      children: [
+        node1 = {
+          nodeType: NodeType.PATH_SEGMENT,
+          children: [
+            node11 = {
+              nodeType: NodeType.VARIABLE,
+              name: 'foo',
+              constraint: null,
+              parent: null,
+              start: 0,
+              end: 4,
+            },
+          ],
+          parent: null,
+          start: 0,
+          end: 4,
+        },
+        node2 = {
+          nodeType: NodeType.PATH_SEGMENT,
+          children: [
+            node21 = {
+              nodeType: NodeType.VARIABLE,
+              name: 'foo',
+              constraint: null,
+              parent: null,
+              start: 5,
+              end: 9,
+            },
+          ],
+          parent: null,
+          start: 4,
+          end: 9,
+        },
+      ],
+      parent: null,
+      start: 0,
+      end: 9,
+    };
+
+    node1.parent = rootNode;
+    node11.parent = node1;
+
+    node2.parent = rootNode;
+    node21.parent = node2;
+
+    expect(parsePattern(':foo/:foo')).toEqual(rootNode);
+  });
+
   test('parses variable with text constraint', () => {
     let node1: Node;
     let node11: IVariableNode;

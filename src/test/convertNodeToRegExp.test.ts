@@ -91,10 +91,10 @@ describe('convertNodeToRegExp', () => {
     expect(re.exec('/abc/123')?.groups).toEqual({foo: 'abc', bar: '123'});
   });
 
-  test('variables overwrite native groups with the same name', () => {
+  test('variables do not overwrite native groups with the same name', () => {
     const re = convertNodeToRegExp(parsePattern('/:foo/((?<foo>\\w+))'));
 
-    expect(re.exec('/abc/123')?.groups).toEqual({foo: 'abc'});
+    expect(re.exec('/abc/123')?.groups).toEqual({foo: '123'});
   });
 
   test('variable can be named __proto__', () => {
@@ -125,5 +125,11 @@ describe('convertNodeToRegExp', () => {
     const re = convertNodeToRegExp(parsePattern('/:foo:bar{abc}'));
 
     expect(re.exec('/123abc')?.groups).toEqual({foo: '123', bar: 'abc'});
+  });
+
+  test('multiple variables with the same name', () => {
+    const re = convertNodeToRegExp(parsePattern('/:foo/:foo'));
+
+    expect(re.exec('/123/abc')?.groups).toEqual({foo: '123'});
   });
 });

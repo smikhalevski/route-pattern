@@ -1,7 +1,7 @@
 import {
   IAltNode,
   IPathNode,
-  IPathSegmentNode,
+  ISegmentNode,
   IRegExpNode,
   ITextNode,
   IVariableNode,
@@ -12,7 +12,7 @@ import {
 
 export interface INodeVisitor {
   path?(node: IPathNode, next: () => void): void;
-  pathSegment?(node: IPathSegmentNode, next: () => void): void;
+  segment?(node: ISegmentNode, next: () => void): void;
   alt?(node: IAltNode, next: () => void): void;
   variable?(node: IVariableNode, next: () => void): void;
   wildcard?(node: IWildcardNode): void;
@@ -33,8 +33,8 @@ export function visitNode(node: Node | null | undefined, visitor: INodeVisitor):
       visitor.path?.(node, () => visitChildren(node.children, visitor));
       break;
 
-    case NodeType.PATH_SEGMENT:
-      visitor.pathSegment?.(node, () => visitChildren(node.children, visitor));
+    case NodeType.SEGMENT:
+      visitor.segment?.(node, () => visitChildren(node.children, visitor));
       break;
 
     case NodeType.ALT:

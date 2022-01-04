@@ -21,7 +21,7 @@ describe('parsePattern', () => {
       absolute: true,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [],
           parent: null,
           start: 1,
@@ -47,14 +47,14 @@ describe('parsePattern', () => {
       absolute: true,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [],
           parent: null,
           start: 0,
           end: 1,
         },
         node2 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [],
           parent: null,
           start: 1,
@@ -81,7 +81,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.WILDCARD,
@@ -116,7 +116,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.WILDCARD,
@@ -154,7 +154,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.TEXT,
@@ -169,7 +169,7 @@ describe('parsePattern', () => {
           end: 3,
         },
         node2 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node21 = {
               nodeType: NodeType.TEXT,
@@ -206,7 +206,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.TEXT,
@@ -243,7 +243,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.TEXT,
@@ -258,7 +258,7 @@ describe('parsePattern', () => {
           end: 4,
         },
         node2 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node21 = {
               nodeType: NodeType.TEXT,
@@ -296,7 +296,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.TEXT,
@@ -331,7 +331,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.REG_EXP,
@@ -367,7 +367,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.VARIABLE,
@@ -405,7 +405,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.VARIABLE,
@@ -421,7 +421,7 @@ describe('parsePattern', () => {
           end: 4,
         },
         node2 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node21 = {
               nodeType: NodeType.VARIABLE,
@@ -461,7 +461,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.VARIABLE,
@@ -505,7 +505,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.VARIABLE,
@@ -550,7 +550,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.VARIABLE,
@@ -602,7 +602,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.VARIABLE,
@@ -648,7 +648,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.ALT,
@@ -699,7 +699,7 @@ describe('parsePattern', () => {
       absolute: false,
       children: [
         node1 = {
-          nodeType: NodeType.PATH_SEGMENT,
+          nodeType: NodeType.SEGMENT,
           children: [
             node11 = {
               nodeType: NodeType.ALT,
@@ -709,7 +709,7 @@ describe('parsePattern', () => {
                   absolute: false,
                   children: [
                     node1111 = {
-                      nodeType: NodeType.PATH_SEGMENT,
+                      nodeType: NodeType.SEGMENT,
                       children: [
                         node11111 = {
                           nodeType: NodeType.TEXT,
@@ -733,7 +733,7 @@ describe('parsePattern', () => {
                   absolute: false,
                   children: [
                     node1121 = {
-                      nodeType: NodeType.PATH_SEGMENT,
+                      nodeType: NodeType.SEGMENT,
                       children: [
                         node11211 = {
                           nodeType: NodeType.TEXT,

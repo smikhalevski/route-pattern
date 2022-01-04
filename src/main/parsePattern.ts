@@ -38,7 +38,7 @@ export function parsePattern(str: string): IPathNode {
 
     if (parentNode.nodeType === NodeType.PATH) {
       const segmentNode: Node = {
-        nodeType: NodeType.PATH_SEGMENT,
+        nodeType: NodeType.SEGMENT,
         children: [node],
         parent: parentNode,
         start: node.start,
@@ -56,7 +56,7 @@ export function parsePattern(str: string): IPathNode {
       return;
     }
 
-    if (parentNode.nodeType === NodeType.PATH_SEGMENT) {
+    if (parentNode.nodeType === NodeType.SEGMENT) {
       parentNode.children.push(node);
       setEnd(node.end);
       return;
@@ -186,7 +186,7 @@ export function parsePattern(str: string): IPathNode {
       }
 
       const node: Node = {
-        nodeType: NodeType.PATH_SEGMENT,
+        nodeType: NodeType.SEGMENT,
         children: [],
         parent: parentNode,
         start,

@@ -70,7 +70,7 @@ export function convertNodeToRegExp(node: Node, options: INodeToRegExpConverterO
       next();
     },
 
-    pathSegment(node, next) {
+    segment(node, next) {
       const parent = node.parent;
       if (parent?.nodeType === NodeType.PATH && (parent.children[0] !== node || parent.absolute)) {
         pattern += pathSeparatorPattern;

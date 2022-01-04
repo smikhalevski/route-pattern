@@ -51,6 +51,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.0.0",
+    "@smikhalevski/codegen": "^2.0.1",
     "@types/jest": "^26.0.23",
     "jest": "^27.0.2",
     "rimraf": "^3.0.2",

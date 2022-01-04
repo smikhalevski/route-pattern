@@ -1,5 +1,4 @@
-import {parsePattern} from '../main/parsePattern';
-import {IVariableNode, Node, NodeType} from '../main/ast-types';
+import {IVariableNode, Node, NodeType, parsePattern} from '../main';
 
 describe('parsePattern', () => {
 

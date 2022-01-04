@@ -1,33 +1,36 @@
-import {convertNodeToRegExp} from '../main/convertNodeToRegExp';
-import {parsePattern} from '../main';
+import {convertNodeToRegExp, parsePattern} from '../main';
 
 describe('convertNodeToRegExp', () => {
 
-  test('converts variable', () => {
+  test('converts a variable', () => {
     expect(convertNodeToRegExp(parsePattern(':foo'))).toEqual(/^([^/]*)/i);
   });
 
-  test('converts variable with text constraint', () => {
+  test('converts a variable with a text constraint', () => {
     expect(convertNodeToRegExp(parsePattern(':foo"bar"'))).toEqual(/^(bar)/i);
   });
 
-  test('converts variable with regexp constraint', () => {
+  test('converts a variable with a regexp constraint', () => {
     expect(convertNodeToRegExp(parsePattern(':foo(\\d+)'))).toEqual(/^((?:\d+))/i);
   });
 
-  test('converts variable with alternation constraint', () => {
+  test('converts a variable with an alternation constraint', () => {
     expect(convertNodeToRegExp(parsePattern(':foo { foo, bar }'))).toEqual(/^((?:foo|bar))/i);
+  });
+
+  test('converts a variable with an empty alternation constraint', () => {
+    expect(convertNodeToRegExp(parsePattern(':foo{}'))).toEqual(/^((?:))/i);
   });
 
   test('converts variables with respect to regexp group count', () => {
     expect(convertNodeToRegExp(parsePattern('(([abc]))/:foo(\\d+)'))).toEqual(/^(?:([abc]))\/((?:\d+))/i);
   });
 
-  test('converts text', () => {
+  test('converts a text', () => {
     expect(convertNodeToRegExp(parsePattern('foo'))).toEqual(/^foo/i);
   });
 
-  test('converts text with regexp control chars', () => {
+  test('converts a text with regexp control chars', () => {
     expect(convertNodeToRegExp(parsePattern('$fo[o]'))).toEqual(/^\$fo\[o\]/i);
   });
 
@@ -39,23 +42,23 @@ describe('convertNodeToRegExp', () => {
     expect(convertNodeToRegExp(parsePattern('**'))).toEqual(/^.*/i);
   });
 
-  test('converts alternation', () => {
+  test('converts an alternation', () => {
     expect(convertNodeToRegExp(parsePattern('{foo,bar}'))).toEqual(/^(?:foo|bar)/i);
   });
 
-  test('converts alternation with leading path separator', () => {
+  test('converts an alternation with leading path separator', () => {
     expect(convertNodeToRegExp(parsePattern('/{foo,bar}'))).toEqual(/^\/(?:foo|bar)/i);
   });
 
-  test('converts alternation with path separator inside branch', () => {
+  test('converts an alternation with path separator inside branch', () => {
     expect(convertNodeToRegExp(parsePattern('{ /foo, bar }'))).toEqual(/^(?:\/foo|bar)/i);
   });
 
-  test('converts complex pattern', () => {
+  test('converts a complex pattern', () => {
     expect(convertNodeToRegExp(parsePattern('/aaa{ :foo{ /bbb, :bar(ccc|ddd) }/**}'))).toEqual(/^\/aaa(?:((?:\/bbb|((?:ccc|ddd))))\/.*)/i);
   });
 
-  test('adds exec to support groups', () => {
+  test('overwrites exec method to support groups', () => {
     const re = convertNodeToRegExp(parsePattern('/:foo{:bar,aaa}'));
     const arr = re.exec('/abc');
 
@@ -70,7 +73,7 @@ describe('convertNodeToRegExp', () => {
     expect(arr?.groups?.foo).toEqual('abc');
   });
 
-  test('creates case-insensitive regexp by default', () => {
+  test('creates a case-insensitive regexp by default', () => {
     const re = convertNodeToRegExp(parsePattern('/ABC'));
 
     expect(re.ignoreCase).toBe(true);
@@ -78,7 +81,7 @@ describe('convertNodeToRegExp', () => {
     expect(re.exec('/ABC')).toEqual(expect.objectContaining(['/ABC']));
   });
 
-  test('creates case-sensitive regexp', () => {
+  test('creates a case-sensitive regexp', () => {
     const re = convertNodeToRegExp(parsePattern('/ABC'), {caseSensitive: true});
 
     expect(re.exec('/abc')).toBeNull();
@@ -97,31 +100,31 @@ describe('convertNodeToRegExp', () => {
     expect(re.exec('/abc/123')?.groups).toEqual({foo: '123'});
   });
 
-  test('variable can be named __proto__', () => {
+  test('a variable can be named __proto__', () => {
     const re = convertNodeToRegExp(parsePattern('/:__proto__'));
 
     expect(re.exec('/abc')?.groups?.__proto__).toBe('abc');
   });
 
-  test('variable can be preceded by a string', () => {
+  test('a variable can be preceded by a string', () => {
     const re = convertNodeToRegExp(parsePattern('/foo-:bar'));
 
     expect(re.exec('/foo-aaa')?.groups?.bar).toBe('aaa');
   });
 
-  test('variable can be followed by a string', () => {
+  test('a variable can be followed by a string', () => {
     const re = convertNodeToRegExp(parsePattern('/:bar{*}-foo'));
 
     expect(re.exec('/aaa-foo')?.groups?.bar).toBe('aaa');
   });
 
-  test('sequential variables without constraint', () => {
+  test('sequential variables without a constraint', () => {
     const re = convertNodeToRegExp(parsePattern('/:foo:bar'));
 
     expect(re.exec('/123abc')?.groups).toEqual({foo: '123abc', bar: ''});
   });
 
-  test('sequential variables with constraint', () => {
+  test('sequential variables with a constraint', () => {
     const re = convertNodeToRegExp(parsePattern('/:foo:bar{abc}'));
 
     expect(re.exec('/123abc')?.groups).toEqual({foo: '123', bar: 'abc'});

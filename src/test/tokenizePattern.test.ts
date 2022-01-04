@@ -1,4 +1,4 @@
-import {IPatternTokenizeHandler, tokenizePattern} from '../main/tokenizePattern';
+import {IPatternTokenizeHandler, tokenizePattern} from '../main';
 
 describe('tokenizePattern', () => {
 

@@ -8,7 +8,7 @@ import {
   IWildcardNode,
   Node,
   NodeType,
-} from './ast-types';
+} from './parser-types';
 
 export interface INodeVisitor {
   path?(node: IPathNode, next: () => void): void;

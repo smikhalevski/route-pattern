@@ -1,6 +1,6 @@
 import {visitNode} from './visitNode';
 import {escapeRegExp} from './escapeRegExp';
-import {Node, NodeType} from './ast-types';
+import {Node, NodeType} from './parser-types';
 
 export interface INodeToRegExpConverterOptions {
 

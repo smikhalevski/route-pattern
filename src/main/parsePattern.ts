@@ -1,4 +1,4 @@
-import {IPathNode, Node, NodeType} from './ast-types';
+import {IPathNode, Node, NodeType} from './parser-types';
 import {tokenizePattern} from './tokenizePattern';
 import {die} from './misc';
 

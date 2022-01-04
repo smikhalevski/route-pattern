@@ -1,5 +1,6 @@
-import {IPathNode, Node, NodeType} from './ast-types';
+import {IPathNode, Node, NodeType} from './parser-types';
 import {tokenizePattern} from './tokenizePattern';
+import {die} from './misc';
 
 /**
  * Converts pattern to an AST.
@@ -10,7 +11,7 @@ import {tokenizePattern} from './tokenizePattern';
  */
 export function parsePattern(str: string): IPathNode {
 
-  let root: Node = {
+  const rootNode: Node = {
     nodeType: NodeType.PATH,
     absolute: false,
     children: [],
@@ -19,83 +20,83 @@ export function parsePattern(str: string): IPathNode {
     end: 0,
   };
 
-  let parent: Node = root;
+  let parentNode: Node = rootNode;
   let altDepth = 0;
 
   const pushNode = (node: Node): void => {
 
-    if (parent.nodeType === NodeType.VARIABLE) {
-      if (parent.constraint) {
-        parent = parent.parent!;
+    if (parentNode.nodeType === NodeType.VARIABLE) {
+      if (parentNode.constraint) {
+        parentNode = parentNode.parent || die();
       } else {
-        parent.constraint = node;
+        parentNode.constraint = node;
         setEnd(node.end);
-        parent = parent.parent!;
+        parentNode = parentNode.parent || die();
         return;
       }
     }
 
-    if (parent.nodeType === NodeType.PATH) {
-      const segNode: Node = {
-        nodeType: NodeType.PATH_SEGMENT,
+    if (parentNode.nodeType === NodeType.PATH) {
+      const segmentNode: Node = {
+        nodeType: NodeType.SEGMENT,
         children: [node],
-        parent,
+        parent: parentNode,
         start: node.start,
         end: 0,
       };
 
-      if (parent.children.length === 0) {
-        parent.start = node.start;
+      if (parentNode.children.length === 0) {
+        parentNode.start = node.start;
       }
 
-      node.parent = segNode;
-      parent.children.push(segNode);
-      parent = segNode;
+      node.parent = segmentNode;
+      parentNode.children.push(segmentNode);
+      parentNode = segmentNode;
       setEnd(node.end);
       return;
     }
 
-    if (parent.nodeType === NodeType.PATH_SEGMENT) {
-      parent.children.push(node);
+    if (parentNode.nodeType === NodeType.SEGMENT) {
+      parentNode.children.push(node);
       setEnd(node.end);
       return;
     }
 
-    throw new SyntaxError(`Unexpected syntax at ${node.start}`);
+    die('Unexpected syntax', node.start);
   };
 
   const setEnd = (end: number): void => {
-    for (let node: Node | null = parent; node !== null; node = node.parent) {
+    for (let node: Node | null = parentNode; node !== null; node = node.parent) {
       node.end = end;
     }
   };
 
-  let length = tokenizePattern(str, {
+  const length = tokenizePattern(str, {
 
-    onVariable(name, start, end) {
-      if (parent.nodeType === NodeType.VARIABLE) {
-        parent = parent.parent!;
+    variable(name, start, end) {
+      if (parentNode.nodeType === NodeType.VARIABLE) {
+        parentNode = parentNode.parent || die();
       }
       const node: Node = {
         nodeType: NodeType.VARIABLE,
         name,
         constraint: null,
-        parent,
+        parent: parentNode,
         start,
         end,
       };
 
       pushNode(node);
-      parent = node;
+      parentNode = node;
     },
 
-    onAltStart(start, end) {
+    altStart(start, end) {
       altDepth++;
 
       const altNode: Node = {
         nodeType: NodeType.ALT,
         children: [],
-        parent,
+        parent: parentNode,
         start,
         end,
       };
@@ -111,105 +112,99 @@ export function parsePattern(str: string): IPathNode {
 
       altNode.children.push(pathNode);
       pushNode(altNode);
-      parent = pathNode;
+      parentNode = pathNode;
     },
 
-    onAltEnd(start, end) {
+    altEnd(start, end) {
       altDepth--;
 
-      while (parent.nodeType !== NodeType.ALT) {
-        if (!parent.parent) {
-          throw new SyntaxError(`Unexpected alternation end at ${start}`);
-        }
-        parent = parent.parent;
+      while (parentNode.nodeType !== NodeType.ALT) {
+        parentNode = parentNode.parent || die('Unexpected alternation end', start);
       }
       setEnd(end);
-      parent = parent.parent!;
+      parentNode = parentNode.parent || die();
     },
 
-    onAltSeparator(start, end) {
-      while (parent.nodeType !== NodeType.ALT) {
-        if (!parent.parent) {
-          throw new SyntaxError(`Unexpected alternation separator at ${start}`);
-        }
-        parent = parent.parent;
+    altSeparator(start, end) {
+      while (parentNode.nodeType !== NodeType.ALT) {
+        parentNode = parentNode.parent || die('Unexpected alternation separator', start);
       }
 
       const node: Node = {
         nodeType: NodeType.PATH,
         absolute: false,
         children: [],
-        parent,
+        parent: parentNode,
         start: end,
         end,
       };
 
-      parent.children.push(node);
-      parent = node;
+      parentNode.children.push(node);
+      parentNode = node;
       setEnd(end);
     },
 
-    onWildcard(greedy, start, end) {
+    wildcard(greedy, start, end) {
       pushNode({
         nodeType: NodeType.WILDCARD,
         greedy,
-        parent,
+        parent: parentNode,
         start,
         end,
       });
     },
 
-    onRegExp(pattern, groupCount, start, end) {
+    regExp(pattern, groupCount, start, end) {
       pushNode({
         nodeType: NodeType.REG_EXP,
         pattern,
         groupCount,
-        parent,
+        parent: parentNode,
         start,
         end,
       });
     },
 
-    onText(value, start, end) {
+    text(value, start, end) {
       pushNode({
         nodeType: NodeType.TEXT,
         value,
-        parent,
+        parent: parentNode,
         start,
         end,
       });
     },
 
-    onPathSeparator(start, end) {
-      while (parent.nodeType !== NodeType.PATH) {
-        parent = parent.parent!;
+    pathSeparator(start, end) {
+      while (parentNode.nodeType !== NodeType.PATH) {
+        parentNode = parentNode.parent || die();
       }
 
-      if (parent.children.length === 0) {
-        parent.absolute = true;
-        parent.start = start;
+      if (parentNode.children.length === 0) {
+        parentNode.absolute = true;
+        parentNode.start = start;
       }
 
       const node: Node = {
-        nodeType: NodeType.PATH_SEGMENT,
+        nodeType: NodeType.SEGMENT,
         children: [],
-        parent,
+        parent: parentNode,
         start,
         end,
       };
 
-      parent.children.push(node);
-      parent = node;
+      parentNode.children.push(node);
+      parentNode = node;
       setEnd(end);
     },
   });
 
   if (length !== str.length) {
-    throw new SyntaxError(`Unexpected syntax after ${length}`);
+    die('Unexpected syntax', length);
   }
   if (altDepth !== 0) {
-    throw new SyntaxError(`Unterminated alternation at ${length}`);
+    die('Unterminated alternation', length);
   }
 
-  return root;
+  return rootNode;
 }

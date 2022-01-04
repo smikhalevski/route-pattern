@@ -1,4 +1,4 @@
-export * from './ast-types';
+export * from './parser-types';
 export * from './convertNodeToRegExp';
 export * from './convertPatternToRegExp';
 export * from './parsePattern';

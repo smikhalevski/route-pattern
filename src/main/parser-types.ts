@@ -1,6 +1,6 @@
 export const enum NodeType {
   PATH,
-  PATH_SEGMENT,
+  SEGMENT,
   VARIABLE,
   ALT,
   WILDCARD,
@@ -10,7 +10,7 @@ export const enum NodeType {
 
 export type Node =
     | IPathNode
-    | IPathSegmentNode
+    | ISegmentNode
     | IAltNode
     | IVariableNode
     | IWildcardNode
@@ -25,18 +25,18 @@ export interface INode {
 
 export interface IPathNode extends INode {
   nodeType: NodeType.PATH;
-  children: Array<Node>;
+  children: Node[];
   absolute: boolean;
 }
 
-export interface IPathSegmentNode extends INode {
-  nodeType: NodeType.PATH_SEGMENT;
-  children: Array<Node>;
+export interface ISegmentNode extends INode {
+  nodeType: NodeType.SEGMENT;
+  children: Node[];
 }
 
 export interface IAltNode extends INode {
   nodeType: NodeType.ALT;
-  children: Array<Node>;
+  children: Node[];
 }
 
 export interface IVariableNode extends INode {

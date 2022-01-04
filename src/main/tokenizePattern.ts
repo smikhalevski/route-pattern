@@ -1,39 +1,55 @@
-import {allCharBy, char, CharCodeChecker, ResultCode, seq, Taker, text} from 'tokenizer-dsl';
+import {all, char, CharCodeChecker, ResultCode, seq, Taker, text} from 'tokenizer-dsl';
 import {CharCode} from './CharCode';
 
+const ERROR_CODE = -2;
+
 const isSpaceChar: CharCodeChecker = (c) =>
-    c === 0x20
+    c === CharCode[' ']
     || c === CharCode['\t']
     || c === CharCode['\r']
     || c === CharCode['\n'];
 
-const isVariableNameChar: CharCodeChecker = (c) =>
+const isVariableNameStartChar: CharCodeChecker = (c) =>
     c >= CharCode['a'] && c <= CharCode['z']
     || c >= CharCode['A'] && c <= CharCode['Z']
-    || c >= CharCode['00'] && c <= CharCode['09']
     || c === CharCode['$']
     || c === CharCode['_'];
 
-const takeSpace = allCharBy(isSpaceChar);
+const isVariableNameChar: CharCodeChecker = (c) =>
+    isVariableNameStartChar(c)
+    || c >= CharCode['0'] && c <= CharCode['9'];
 
-const takeVariable = seq(char(CharCode[':']), allCharBy(isVariableNameChar, 1));
+const takeSpace = all(char(isSpaceChar));
 
-const takeAltStart = char(CharCode['{']);
+const takeVariableName = seq(char(isVariableNameStartChar), all(char(isVariableNameChar)));
 
-const takeAltEnd = char(CharCode['}']);
+const takeAltStart = text('{');
 
-const takeAltSeparator = char(CharCode[',']);
+const takeAltEnd = text('}');
+
+const takeAltSeparator = text(',');
 
 const takeGreedyWildcard = text('**');
 
-const takeWildcard = char(CharCode['*']);
+const takeWildcard = text('*');
 
-const takePathSeparator = char(CharCode['/']);
+const takePathSeparator = text('/');
+
+const takeVariable: Taker = (str, i) => {
+  if (str.charCodeAt(i) !== CharCode[':']) {
+    return ResultCode.NO_MATCH;
+  }
+
+  const j = takeVariableName(str, ++i);
+
+  return j > i ? j : ERROR_CODE;
+};
 
 let lastText = '';
 
 const takeQuotedText: Taker = (str, i) => {
   const quoteCode = str.charCodeAt(i);
+
   if (quoteCode !== CharCode['"'] && quoteCode !== CharCode['\'']) {
     return ResultCode.NO_MATCH;
   }
@@ -61,7 +77,7 @@ const takeQuotedText: Taker = (str, i) => {
 
   lastText = '';
 
-  return ResultCode.ERROR;
+  return ERROR_CODE;
 };
 
 let lastGroupCount = 0;
@@ -100,42 +116,79 @@ const takeRegExp: Taker = (str, i) => {
   }
 
   lastGroupCount = 0;
-  return ResultCode.ERROR;
+  return ERROR_CODE;
 };
 
-export type DataCallback = (data: string, start: number, end: number) => void;
+export interface IPatternTokenizeHandler {
 
-export type OffsetCallback = (start: number, end: number) => void;
+  /**
+   * Triggered when a variable declaration was read.
+   */
+  variable?(name: string, start: number, end: number): void;
 
-export interface IPatternTokenizerOptions {
-  onVariable?: DataCallback;
-  onAltStart?: OffsetCallback;
-  onAltEnd?: OffsetCallback;
-  onAltSeparator?: OffsetCallback;
-  onWildcard?: (greedy: boolean, start: number, end: number) => void;
-  onRegExp?: (pattern: string, groupCount: number, start: number, end: number) => void;
-  onText?: DataCallback;
-  onPathSeparator?: OffsetCallback;
+  /**
+   * Triggered when an alternation opening bracket was read.
+   */
+  altStart?(start: number, end: number): void;
+
+  /**
+   * Triggered when an alternation closing bracket was read.
+   */
+  altEnd?(start: number, end: number): void;
+
+  /**
+   * Triggered when an alternation separator was read.
+   */
+  altSeparator?(start: number, end: number): void;
+
+  /**
+   * Triggered when a wildcard was read.
+   *
+   * @param greedy `true` if wildcard captures path separators.
+   * @param start The token start offset.
+   * @param end The token end offset.
+   */
+  wildcard?(greedy: boolean, start: number, end: number): void;
+
+  /**
+   * Triggered when a regular expression was read.
+   *
+   * @param pattern The pattern that can be compiled as a `RegExp`.
+   * @param groupCount The number of groups captured by the pattern.
+   * @param start The token start offset.
+   * @param end The token end offset.
+   */
+  regExp?(pattern: string, groupCount: number, start: number, end: number): void;
+
+  /**
+   * Triggered when a plain text fragment was read.
+   */
+  text?(data: string, start: number, end: number): void;
+
+  /**
+   * Triggered when a path separator was read.
+   */
+  pathSeparator?(start: number, end: number): void;
 }
 
 /**
  * Traverses pattern and invokes callbacks when particular token in met.
  *
  * @param str The pattern to tokenize.
- * @param options Callbacks to invoke during tokenization.
+ * @param handler Callbacks to invoke during tokenization.
  * @returns The number of chars that were successfully parsed in `str`.
  */
-export function tokenizePattern(str: string, options: IPatternTokenizerOptions): number {
+export function tokenizePattern(str: string, handler: IPatternTokenizeHandler): number {
   const {
-    onVariable,
-    onAltStart,
-    onAltEnd,
-    onAltSeparator,
-    onWildcard,
-    onRegExp,
-    onText,
-    onPathSeparator,
-  } = options;
+    variable,
+    altStart,
+    altEnd,
+    altSeparator,
+    wildcard,
+    regExp,
+    text,
+    pathSeparator,
+  } = handler;
 
   const charCount = str.length;
 
@@ -144,7 +197,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
 
   const emitText = () => {
     if (textStart !== -1) {
-      onText?.(str.substring(textStart, textEnd), textStart, textEnd);
+      text?.(str.substring(textStart, textEnd), textStart, textEnd);
       textStart = -1;
     }
   };
@@ -169,15 +222,17 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeVariable(str, i);
     if (j >= 0) {
       emitText();
-      onVariable?.(str.substring(i + 1, j), i, j);
+      variable?.(str.substring(i + 1, j), i, j);
       i = j;
       continue;
+    } else if (j === ERROR_CODE) {
+      return i;
     }
 
     j = takeAltStart(str, i);
     if (j >= 0) {
       emitText();
-      onAltStart?.(i, j);
+      altStart?.(i, j);
       i = j;
       continue;
     }
@@ -185,7 +240,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeAltEnd(str, i);
     if (j >= 0) {
       emitText();
-      onAltEnd?.(i, j);
+      altEnd?.(i, j);
       i = j;
       continue;
     }
@@ -193,7 +248,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeAltSeparator(str, i);
     if (j >= 0) {
       emitText();
-      onAltSeparator?.(i, j);
+      altSeparator?.(i, j);
       i = j;
       continue;
     }
@@ -201,7 +256,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeGreedyWildcard(str, i);
     if (j >= 0) {
       emitText();
-      onWildcard?.(true, i, j);
+      wildcard?.(true, i, j);
       i = j;
       continue;
     }
@@ -209,7 +264,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeWildcard(str, i);
     if (j >= 0) {
       emitText();
-      onWildcard?.(false, i, j);
+      wildcard?.(false, i, j);
       i = j;
       continue;
     }
@@ -217,7 +272,7 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takePathSeparator(str, i);
     if (j >= 0) {
       emitText();
-      onPathSeparator?.(i, j);
+      pathSeparator?.(i, j);
       i = j;
       continue;
     }
@@ -225,20 +280,20 @@ export function tokenizePattern(str: string, options: IPatternTokenizerOptions):
     j = takeQuotedText(str, i);
     if (j >= 0) {
       emitText();
-      onText?.(lastText, i, j);
+      text?.(lastText, i, j);
       i = j;
       continue;
-    } else if (j === ResultCode.ERROR) {
+    } else if (j === ERROR_CODE) {
       return i;
     }
 
     j = takeRegExp(str, i);
     if (j >= 0) {
       emitText();
-      onRegExp?.(str.substring(i + 1, j - 1), lastGroupCount, i, j);
+      regExp?.(str.substring(i + 1, j - 1), lastGroupCount, i, j);
       i = j;
       continue;
-    } else if (j === ResultCode.ERROR) {
+    } else if (j === ERROR_CODE) {
       return i;
     }
 
